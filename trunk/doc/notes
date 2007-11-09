@@ -1,0 +1,69 @@
+Papers
+------
+
+A readable paper by the current leading team of Netflix Prize, ATT. Their idea
+on Section 4.4 is what Tommi mentioned about boosting.
+
+  http://portal.acm.org/citation.cfm?id=1281206
+
+Various statistics about the Netflix Prize.  Seems like methods using SVD
+(singular value decomposition) performs well.
+
+  http://www.netflixprize.com/assets/NetflixPrizeKDD_to_appear.pdf
+
+SVM style matrix factorization for collaborative filtering
+
+  http://people.csail.mit.edu/jrennie/papers/icml05-mmmf.pdf
+
+
+Data Sets and Competitions
+--------------------------
+
+Netflix Prize.
+
+  http://www.netflixprize.com/
+
+KDD Cup is the first and the oldest data mining competition, and is an integral
+part of the annual ACM SIGKDD International Conference on Knowledge Discovery
+and Data Mining (KDD). This year's KDD Cup will be related to (but different
+from) the current Netflix Prize competition. There will also be a workshop at
+the KDD-2007 conference, where the participants of both the KDD Cup and the
+current Netflix Prize competition will present their papers and exchange ideas.
+We are looking forward to an interesting competition and your participation. We
+particularly encourage the participation of students.
+
+  http://www.cs.uic.edu/~liub/Netflix-KDD-Cup-2007.html
+
+MovieLens data set.
+
+  http://www.grouplens.org/node/73
+
+Discussions
+-----------
+
+On the creation of the training and qualifying sets...
+
+  http://www.netflixprize.com/community/viewtopic.php?id=332
+
+Random
+------
+
+Various statistics
+
+  http://krisbrower.com/2007/02/01/netflix-data-statistics/
+
+Packages
+--------
+
+Collaborative filtering for Java.
+
+  http://taste.sf.net/
+
+Pyflix is a small package written in Python that provides an easy entry point
+for getting up and running in the Netflix Prize competition. It combines an
+efficient storage scheme with an intuitive high-level API that allows
+contestants to focus on the real problem, the recommendation system algorithm.
+
+  http://pyflix.python-hosting.com/
+
+vim:nocin

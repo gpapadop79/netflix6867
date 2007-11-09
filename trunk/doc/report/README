@@ -1,0 +1,2 @@
+To build this report, make sure you have the LaTeX frontend called 'rubber',
+and just run make.
