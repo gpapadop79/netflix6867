@@ -1,0 +1,10 @@
+function out = readRatings(file)
+
+%Format
+%  out = | -1  ID1  ID2  ID3  ID4...  |
+%        | mID R1
+
+fid=fopen(file,'rt');
+fscanf(fid,'%d');
+fscanf(fid,':');
+A = fscanf(fid,'%d,%d,%s\n');
