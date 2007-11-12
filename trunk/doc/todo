@@ -2,5 +2,21 @@
 
 * DONE set up the repository
   CLOSED: [2007-11-07 Wed 15:25]
+
+* TODO easy
+** TODO naive linear reg (hiro)
+*** TODO questions: model selection, how many components should the params have?
+** TODO mixture + em (yang)
+*** TODO questions: how many types should there be?
+
+* TODO med
+** TODO kernel + percep
+
+* TODO adv
+** TODO svm
+** TODO boosting
+
+* TODO incorporate hiro's prior project
 * TODO finish the final report
 * TODO win the netflix prize
+
