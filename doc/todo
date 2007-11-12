@@ -5,7 +5,7 @@
 
 * TODO easy
 ** TODO naive linear reg (hiro)
-*** TODO questions: model selection, how many components should the params have?
+*** TODO questions: model selection, how many components should the params have? initial values?
 ** TODO mixture + em (yang)
 *** TODO questions: how many types should there be?
 
