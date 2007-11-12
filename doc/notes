@@ -11,7 +11,9 @@ Various statistics about the Netflix Prize.  Seems like methods using SVD
 
   http://www.netflixprize.com/assets/NetflixPrizeKDD_to_appear.pdf
 
-SVM style matrix factorization for collaborative filtering
+SVM style matrix factorization for collaborative filtering. Refer to
+this for details on how to classify into multiple, ordered classes
+(1-5).
 
   http://people.csail.mit.edu/jrennie/papers/icml05-mmmf.pdf
 
