@@ -8,6 +8,9 @@
 %  zero.
 %  testSet - test set data. Missing elements are filled with
 %  zero.
+%
+% Example:
+% [train test] = devideData(R, 0.1);
 
 function [trainingSet testSet] = devideData(R, sparsity)
 
