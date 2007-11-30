@@ -1,3 +1,5 @@
+\newcommand{\vect}[1]{\mbox{\boldmath $#1$}}
+
 \documentclass{article}
 \usepackage{amsmath}
 
@@ -16,6 +18,10 @@ Yang  Zhang
 \section{Introduction}
 
 TODO
+\paragraph{TODO: Definition of the Rating Matrix}
+$R$, $r_{i,j}={1,2,3,4,5}$, $n_m$ by $n_u$, vertical - movie, horizontal - user. 
+
+\paragraph{TODO: Perfomance measure: room mean square error(RMSE)}
 
 \section{Mixture Models}
 
@@ -144,6 +150,35 @@ TODO need to derive and verify all these by maximizing the likelihood.
 TODO where do the thetaU and thetaM come from above?
 
 TODO make sure we get the semantics right (of the indexes $i$ and $j$).
+
+\section{Linear Regression + EM-like alterate update}
+
+\subsection{Overview}
+The goal of the algorithm is to find the low-rank approximation of the sparse rating matrix
+\begin{equation}
+R \approx  MU
+\end{equation}
+where $M$ is $n_m$ by $d$ movie property matrix, $U$ is $d$ by $n_u$ user property matrix, and $d$ is the dimension of the low-rank approximation. Due to the missing entries of $R$, $M$ and $U$ cannot be obtained from singular value decomposition. Instead, the algorithm learns $M$ and $U$ using linear regression and EM-like alternate update algorithm.
+\subsection{Algorithm Essense}
+
+At the begging of the algorithm, $M$ is randomly initialized and fixed. Then the $i$th column of $U$ is learned by regular linear regression as follows;
+\begin{equation}
+\vect{u}_i=(\check{M}^T\check{M})^{-1}\check{M}^T \check{\vect r}_i
+\end{equation}
+Where $\check{\vect r}_i$ is a column vector constructed from the $i$th column of the rating matrix $R$, by excluding the missing elements from it. For example, if the $i$th column of $R$ is $[2 \quad \circ \quad 4 \quad \circ \quad \circ \quad 5 \quad \circ]^T$ where``$\circ$'' means missing element, then $\check{r}_i = [2 \quad 4 \quad 5]^T$. $U_i$ is a matrix with the corresponding columns of $U$.
+
+Then $U$ is fixed in the next step, and each row of $M$ is updated in the exactly same manner. These steps are repeated until the training RMSE converges, just as EM algorithm. 
+
+The important fact is that, by repeating this iteration, the training RMSE monotonically decreases, and eventually converges to the (local) optimum. Linear regression finds the parameter which minimizes the log likelihood given the following normal distribution with any fixed variance $\sigma^2$;
+\begin{equation}
+r_{i,j}\sim N(\vec{m}_i \cdot {\vect u}_j, \sigma^2)
+\end{equation}
+where $\vec{m}_i$ is the $i$ th row of $M$ and ${\vect u}_j$ is $j$ th column of $U$.
+
+Thus, just as EM algorithm, the log likelihood on the training data monotonically decreases in each iteration. The RMSE is exactly same as the log likelihood when $\sigma = 1/\sqrt{2}$. Thus, the training RMSE monotonically decreases by iterations.
+
+
+
 
 \section{Appendix}
 
