@@ -22,8 +22,7 @@ averageR = repmat(average, 1, nu);
 
 %randamly initialize 
 rand('twister',sum(100*clock));
-Uinit = randn(dim, nu);
-U = Uinit;
+U = randn(dim, nu);
 
 rmse_average = rmse(averageR,R_test);
 
@@ -39,12 +38,6 @@ for i = 1:N
     max_hist(i) = max(max(M*U));
     min_hist(i) = min(min(M*U));
 
-    if i>500
-        M(1:20,:)
-        U(:,1:18)
-        plot(rmse_hist);
-        input('hoge');
-    end
 end
 
 figure;
