@@ -1,1 +1,180 @@
-hoo hah
+\documentclass{article}
+\usepackage{amsmath}
+
+\newcommand{\PO}[1]{{ \Pr \left( #1 \right) }}
+\newcommand{\PP}[2]{{ \PO{ #1 \mid #2 } }}
+\newcommand{\N}[1]{{ \# \left( \textrm{ #1 } \right) }}
+\newcommand{\range}[1]{{ \left\{ 1, \dots, #1 \right\} }}
+
+\begin{document}
+
+TODO
+
+Masahiro Ono \\
+Yang  Zhang
+
+\section{Introduction}
+
+TODO
+
+\section{Mixture Models}
+
+TODO rename subsections
+
+\subsection{Mixture Model 1}
+
+TODO insert graphical model
+
+The likelihood of our model is:
+
+\begin{align*}
+  L \left( D \mid \theta \right)
+  =& \PP{ R_{1,1} = r_{1,1}, \dots, R_{n,m} = r_{n,m} }{ \theta } \\
+  =& \prod_{i,j} \PP{ R_{i,j} = r_{i,j} }{ \theta } \\
+  =& \prod_{i,j} \sum_{u,m}
+  \PP{ R_{i,j} = r_{i,j} }{ U_i = u, M_j = m, \theta_R }
+  \PP{ U_i = u }{ \theta_U }
+  \PP{ M_j = m }{ \theta_M } \\
+  =& \prod_{i,j} \sum_{u,m} \theta_R(r \mid u,m) \theta_U(u) \theta_M(m)
+\end{align*}
+
+E-step:
+
+\begin{align*}
+  \forall i,j:
+  & \PP{ U_i = u, M_j = m }{ R_{i,j} = r_{i,j}, \theta } \\
+  =& \frac{
+    \PP{ U_i = u, M_j = m, R_{i,j} = r_{i,j} }{ \theta }
+  }{
+    \PP{ R_{i,j} = r_{i,j} }{ \theta }
+  } \\
+% P(U,M|R) = P(U,M,R) = P(R|U,M) P(U,M)
+  =& \frac{
+    \PP{ U_i = u, M_j = m }{ \theta }
+    \PP{ R_{i,j} = r_{i,j} }{ U_i = u, M_j = m, \theta }
+  }{
+    \sum_{u',m'}
+    \PP{ U_i = u', M_j = m' }{ \theta }
+    \PP{ R_{i,j} = r_{i,j} }{ U_i = u', M_j = m', \theta }
+  } & \textrm{Bayes' rule} \\
+  =& \frac{
+    \PP{ U_i = u }{ \theta_U }
+    \PP{ M_i = m }{ \theta_M }
+    \PP{ R_{i,j} = r_{i,j} }{ U_i = u, M_j = m, \theta }
+  }{
+    \sum_{u',m'}
+    \PP{ U_i = u' }{ \theta_U }
+    \PP{ M_i = m' }{ \theta_M }
+    \PP{ R_{i,j} = r_{i,j} }{ U_i = u', M_j = m', \theta }
+  } & \textrm{Bayes' rule} \\
+  =& \PP{}{}
+\end{align*}
+
+M-step:
+
+\begin{align*}
+\forall i,j: &
+\PP{ R_{i,j} = r }{ U_i = u, M_j = m, \theta_R } \\
+\forall i: &
+\PP{ U_i = u }{ \theta_U } \\
+=& \frac{
+  \N{cells with user type $i$}
+}{
+  \N{cells}
+}\\
+=& \N{}
+\end{align*}
+
+TODO finish/correct above equations
+
+\subsection{Mixture Model 2}
+
+TODO insert graphical model
+
+TODO finish/correct below equations
+
+E-step:
+
+\begin{align*}
+\end{align*}
+
+TODO
+
+M-step:
+
+For all $i \in \range{N}$,
+
+\begin{align*}
+  & \PP{ U = u }{ \theta^U_i } \\
+  =& \frac{ \N{user $i$'s movies of user type $u$} }{ \N{user
+      $i$'s movies} } \\
+  =& \frac{1}{m} \sum_{j=1}^m \PP{ U = u }{ R = r_{i,j}, \theta^U_i }
+\end{align*}
+
+TODO need to explain the above unintuitive expression over movies!
+
+For all $j \in \range{N}$,
+
+\begin{align*}
+  & \PP{ M = m }{ \theta^M_j } \\
+  =& \frac{ \N{movie $j$'s users of movie type $m$} }{ \N{movie $j$'s users} } \\
+  =& \frac{1}{m} \sum_{j=1}^m \PP{ U = u }{ R = r_{i,j}, \theta^U_i }
+\end{align*}
+
+For all $u \in \range{K_U}, m \in \range{K_M}$,
+
+\begin{align*}
+& \PP{ R = r }{ U = u, M = m, \theta^R } \\
+=& \frac{
+  \N{R = r, U = u, M = m}
+}{
+  \N{U = u, M = m}
+} \\
+=& \frac{
+  \sum_{i,j: r_{i,j} = r}
+  \PP{U = u, M = m}{R = r, \theta^R, \theta^U_i, \theta^M_j }
+}{
+  \sum_{i,j}
+  \PP{U = u, M = m}{R = r, \theta^R, \theta^U_i, \theta^M_j }
+}
+\end{align*}
+
+TODO need to derive and verify all these by maximizing the likelihood.
+
+TODO where do the thetaU and thetaM come from above?
+
+TODO make sure we get the semantics right (of the indexes $i$ and $j$).
+
+\section{Appendix}
+
+\subsection{Mixture Models}
+
+Here are the variables we're using for the mixture models:
+
+\begin{itemize}
+\item $\theta$: the entire set of parameters
+  \begin{itemize}
+  \item $\theta_U$: the probability distribution over user types (think
+    of this as a table)
+  \item $\theta_M$: the probability distribution over movie types
+  \item $\theta_R(k,l)$: the probability distributions over ratings for user
+    type $l$ and user type $k$.
+  \end{itemize}
+\item Indexes
+  \begin{itemize}
+  \item $i$: generally used to index over users
+  \item $j$: generally used to index over movies
+  \item $u$: generally used to index over user types
+  \item $m$: generally used to index over movie types
+  \end{itemize}
+\item Random variables
+  \begin{itemize}
+  \item $K$: number of user types
+  \item $L$: number of movie types
+  \item $U_i$: the user type of user $i$
+  \item $M_j$: the movie type of movie $j$
+  \item $R_{i,j}$: the rating user $i$ gave for movie $j$
+  \end{itemize}
+\end{itemize}
+
+\end{document}
