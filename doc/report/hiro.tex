@@ -1,0 +1,61 @@
+\section{Linear Regression + EM-like alternate update}
+\subsection{Overview}
+The goal of the algorithm is to find a low-rank approximation of the sparse rating matrix
+\begin{equation}
+R \approx MU
+\end{equation}
+where $M$ is a $n_M$-by-$d$ movie property matrix, $U$ is a
+$d$-by-$n_U$ user property matrix, and $d$ is the dimension of the
+low-rank approximation. Due to the missing entries of $R$, $M$ and $U$
+cannot be obtained from singular value decomposition. Instead, the
+algorithm learns $M$ and $U$ using linear regression and an EM-like
+alternate update algorithm.
+
+\subsection{Learning Algorithm}
+
+At the beginning of the algorithm, $M$ is randomly initialized and fixed. Then the $i$th column of $U$ is learned by regular linear regression as follows;
+\begin{equation}
+\vect{u}_i=(\check{M}^T\check{M})^{-1}\check{M}^T \check{\vect r}_i
+\end{equation}
+Where $\check{\vect r}_i$ is a column vector constructed from the $i$th column of the rating matrix $R$, by excluding the missing elements from it. For example, if the $i$th column of $R$ is $[2 \quad \circ \quad 4 \quad \circ \quad \circ \quad 5 \quad \circ]^T$ where``$\circ$'' means missing element, then $\check{r}_i = [2 \quad 4 \quad 5]^T$. $U_i$ is a matrix with the corresponding columns of $U$.
+
+Then $U$ is fixed in the next step, and each row of $M$ is updated in the exactly same manner. These steps are repeated until the training RMSE converges, just as EM algorithm. 
+
+The important fact is that, by repeating this iteration, the training RMSE monotonically decreases, and eventually converges to the (local) optimum. Linear regression finds the parameter which minimizes the log likelihood given the following normal distribution with arbitrary fixed variance $\sigma^2$;
+\begin{equation}
+r_{i,j}\sim N(\vec{m}_i \cdot {\vect u}_j, \sigma^2)
+\end{equation}
+where $\vec{m}_i$ is the $i$ th row of $M$ and ${\vect u}_j$ is $j$ th column of $U$.
+
+Thus, just as EM algorithm, the log likelihood on the training data monotonically decreases in each iteration. The RMSE is exactly same as the log likelihood when $\sigma = 1/\sqrt{2}$. Thus, the training RMSE monotonically decreases by iterations.
+
+\subsection{Estimation}
+Given the trained matrices $U$ and $M$, the maximum likelihood estimation of the ratings can be easily obtained as follows;
+\begin{equation}
+\hat{r}_{i,j}=\vec{m}_i \cdot {\vect u}_j
+\end{equation}
+
+Although the actual ratings are given as integer numbers from one to five, the estimations by this algorithm are real numbers. We use the real number outputs without rounding them. However, since ratings are from one to five, the estimations above five are turned into five, and those below one are turned into one. We call it \textit{rating range correction}\footnote{Is there more appropriate name for this....??}.
+
+\subsection{Result}
+
+Since the initial value of $M$ is randomly chosen the result is stochastic, and in fact it appears that the result is very sensitive to the initial value of $M$. Figure XX shows the typical result. The training RMSE monotonically decreases over iterations as we expected, but test RMSE does not necessarily monotonically decreases. There is a large gap between training RMSE and test RMSE, indicating that the algorithm poorly overfits to the training data.
+
+% •\‚Ì‘}“ü
+\begin{table}[htbp]
+ \caption{}
+ \begin{center}
+  \begin{tabular}{|c||c|c|c|}
+    \hline
+   $d \setminus$ sparsity    &  0.3  &  0.5  & 0.8   \\
+    \hline
+    \hline
+       &  0.808  &  0.795  &  0.789  \\
+    \hline
+       &  0.859  &  0.790  & 0.772   \\
+    \hline
+       &  0.933  &  0.808  &  0.772  \\
+    \hline
+  \end{tabular}
+ \end{center}
+\end{table}
