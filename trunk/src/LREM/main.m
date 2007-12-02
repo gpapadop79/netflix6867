@@ -1,4 +1,4 @@
-function [trainRMSE testRMSE] = main(R, sparsity, dim, plot)
+function [trainRMSE testRMSE] = main(R, sparsity, dim, plotresult)
 % Netflix prize rating estimation using Linear Regression + EM-like
 % algorithm.
 %
@@ -34,10 +34,10 @@ for i = 1:N
 
 end
 
-if plot==1
+if plotresult==1
     figure;
     hold on;
-    plot(1:N, rmse_train_hist,'b',1:N,rmse_test_hist_lim,'g',1:N,repmat(rmse_average,1,N),':');
+    plot(1:N, trainRMSE,'b',1:N,testRMSE,'r-.',1:N,repmat(rmse_average,1,N),':');
     legend('Training RMSE', 'Test RMSE', 'Average')
 
     figure;
