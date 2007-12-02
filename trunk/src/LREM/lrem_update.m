@@ -13,7 +13,7 @@ for i = 1:nm
     if nargout > 1
        % condn(i) = cond(X*X');
     end
-    M(i,:) = y*(inv(X*X')*X)';
+    M(i,:) = y/X;
 end
 
 condnum = max(condn);

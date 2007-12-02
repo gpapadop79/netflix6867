@@ -20,6 +20,8 @@ U = randn(dim, nu);
 
 rmse_average = rmse(averageR,R_test);
 
+tic;
+
 for i = 1:N
     [M condm(i)] = lrem_update(R_train,U);
     [U condu(i)] = lrem_update(R_train',M');
@@ -33,6 +35,8 @@ for i = 1:N
     min_hist(i) = min(min(M*U));
 
 end
+
+toc;
 
 if plotresult==1
     figure;
@@ -48,3 +52,4 @@ if plotresult==1
     plot(condu);
     title('Condition number U');
 end
+
