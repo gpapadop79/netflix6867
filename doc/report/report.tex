@@ -1,31 +1,382 @@
-\newcommand{\vect}[1]{\mbox{\boldmath $#1$}}
-
 \documentclass{article}
-\usepackage{amsmath}
+\usepackage{amsmath, amssymb}
+\usepackage{comment}
 
-\newcommand{\PO}[1]{{ \Pr \left( #1 \right) }}
-\newcommand{\PP}[2]{{ \PO{ #1 \mid #2 } }}
-\newcommand{\N}[1]{{ \# \left( \textrm{ #1 } \right) }}
+\newcommand{\E}    [2]{{ \textrm{E} \left[ #1 \mid #2 \right] }}
+\newcommand{\LL}   [2]{{ L \left( #1 \mid #2 \right) }}
+\newcommand{\LLL}  [2]{{ l \left( #1 \mid #2 \right) }}
+\newcommand{\N}    [1]{{ \# \left( \textrm{ #1 } \right) }}
+\newcommand{\PO}   [1]{{ \Pr \left( #1 \right) }}
+\newcommand{\PP}   [2]{{ \PO{ #1 \mid #2 } }}
+\newcommand{\mat}  [1]{{ \bf #1 }}
 \newcommand{\range}[1]{{ \left\{ 1, \dots, #1 \right\} }}
+\newcommand{\vect} [1]{{ \mbox{\boldmath $#1$} }}
+
+\title{Collaborative Filtering for the NetFlix Challenge}
+\author{Masahiro Ono and Yang Zhang}
 
 \begin{document}
 
-TODO
-
-Masahiro Ono \\
-Yang  Zhang
+\maketitle
 
 \section{Introduction}
 
-TODO
-\paragraph{TODO: Definition of the Rating Matrix}
-$R$, $r_{i,j}={1,2,3,4,5}$, $n_m$ by $n_u$, vertical - movie, horizontal - user. 
+For our project, we implemented and evaluated several approaches to
+collaborative filtering a subset of the NetFlix Challenge dataset.
+
+\paragraph{Definition of the Rating Matrix}
+There are $n_U$ users and $n_M$ movies.  The {\em ratings matrix}
+$\mat{R}$ is a $n_M$-by-$n_U$ matrix whose rows correspond to users
+and columns correspond to movies, such that entry $r_{i,j} \in
+\range{5}$ is the rating given by user $i$ to movie $j$.
+
+The NetFlix dataset is large: it contains 480,189 users, 17,770
+movies, and 100,480,507 ratings. MATLAB's in-memory data management is
+not amenable to datasets of such scale; hence, we TODO describe how we
+got this small fully packed rating matrix, and why we didn't choose to
+go with the full netflix dataset.
 
 \paragraph{TODO: Perfomance measure: room mean square error(RMSE)}
 
-\section{Mixture Models}
+\section{Mixture Model}
 
-TODO rename subsections
+We use a mixture model to cluster together ratings based on user types
+and movie types. There are various other mixture models for
+collaborative filtering; this model is known as the Joint Mixture
+Model, and is the one presented in 6.867 lecture. TODO citation
+
+For this part of our project, we rigorously derived the E-M algorithm,
+implement the algorithm in MATLAB, and analyzed its results. The
+following sections are organized as follows. First, we describe and
+justify the model. Second, we derive the E-M algorithm. Third, we
+evaluate its performance by using TODO 
+
+\subsection{Overview}
+
+We say that {\em each user} has a distribution over user types (e.g.,
+mostly romantic, a bit of an intellectual), and each movie has a
+distribution over movie types (mostly horror, some action). Each pair
+of user type and movie type has a distribution over ratings (e.g.,
+romantics tend to give horrors low ratings). The likelihood of
+our model given the parameters is then
+\begin{align}
+  \LL{D}{\theta}
+  =& \PP{ R_{1,1} = r_{1,1}, \dots, R_{n_U,n_M} = r_{n_U,n_M} }{
+    \theta } \\
+  =& \prod_{i,j} \sum_{u,m}
+  \PP{ R_{i,j} = r_{i,j} }{ U_{i,j} = u, M_{i,j} = m, \theta^R_{u,m} } \\
+  & \PP{ U_{i,j} = u }{ \theta^U_i }
+  \PP{ M_{i,j} = m }{ \theta^M_j } \\
+  =& \prod_{i,j} \sum_{u,m} \theta^R_{u,m}(r) \theta^U_i(u) \theta^M_j(m)
+\end{align}
+We see that there are three sets of parameters, and our approach is to
+use an E-M algorithm to perform maximum likelihood estimation of these
+parameters.
+
+Each cell has its own user and movie type. What does all this mean?
+Intuitively, we can think of each cell as the result of an {\em act}
+of rating. Hence, every time a user rates a movie, we are randomly
+sampling from among the user's multiple personalities (e.g., the
+romantic in the user was rating this movie). We are also sampling from
+among the movie's multiple aspects (the user saw this movie as a
+horror movie). We will loosely use the term ``rating'' to mean either
+the act of the rating or the rating value itself; hopefully the
+meaning remains clear from the context.
+
+TODO? discuss why the alternative model doesn't work
+
+Figure (TODO) shows the . TODO insert graphical model
+
+\subsection{E-M Algorithm}
+
+TODO reformat below equations
+
+\subsubsection{M-step with complete data}
+
+To derive the E-M algorithm, it is helpful to start by assuming that
+we have ``complete data''---that is, for each rating $i,j$, we know
+precisely which user type $u$ and movie type $m$ the rating belongs
+to.  With this information, we can directly and analytically find the
+parameters that maximize the likelihood of the data.  We can
+equivalently optimize the log-likelihood: $\arg \max_\theta
+\LL{D}{\theta} = \arg \max_\theta \log \LL{D}{\theta}$.
+\begin{align}
+  \LLL{D}{\theta} =& \log \LL{D}{\theta} \\
+  =& \sum_{i,j} \left[
+    \begin{aligned}
+      & \log \PP{R_{i,j} = r_{i,j}}{U_{i,j} = u_{i,J}, M_{i,j} = m_{i,j},
+        \theta^R} + \\
+      & \log \PP{U_{i,j} = u_{i,j}}{\theta^U_i} + \\
+      & \log \PP{M_{i,j} = m_{i,j}}{\theta^M_j}
+    \end{aligned}
+  \right] \\
+  =& \sum_{i,j} \left[
+    \log \theta^R_{u_{i,j},m_{i,j}}(r_{i,j}) +
+    \log \theta^U_i(u_{i,j}) +
+    \log \theta^M_j(m_{i,j})
+  \right] \\
+  =& \sum_{r,u,m,i,j} n_{r,u,m,i,j} \left[
+    \log \theta^R_{u,m}(r) + \log \theta^U_i(u) + \log \theta^M_j(m)
+  \right]
+\end{align}
+Above, $n_{r,u,m,i,j}$ is 1 if rating $i,j$ has rating value $r$, user
+type $u$, and movie type $m$, and 0 otherwise.
+
+Implicit throughout the previous equations were a number of
+constraints due to the fact that we're dealing with probabilities. In
+particular,
+\begin{align}
+\sum_r \theta_{u,m}(r) =& 1 &
+\sum_u \theta_i(u) =& 1 &
+\sum_m \theta_j(m) =& 1
+\end{align}
+To allow ourselves to optimize the equations analytically, we can
+incorporate these into the equation by using LaGrange multipliers
+($\lambda$s below):
+\begin{align}
+  \begin{aligned}
+    \sum_{r,u,m,i,j} n_{r,u,m,i,j} \left[
+      \log \theta^R_{u,m}(r) + \log \theta^U_i(u) + \log \theta^M_j(m)
+    \right] & \\
+    \mathbin{+} \lambda^R_{u,m} \left( 1 - \sum_r \theta^R_{u,m}(r) \right)
+    & \forall u,m \\
+    \mathbin{+} \lambda^U_i \left( 1 - \sum_u \theta^U_i(u) \right)
+    & \forall i \\
+    \mathbin{+} \lambda^M_j \left( 1 - \sum_m \theta^M_j(m) \right)
+    & \forall j
+  \end{aligned}
+\end{align}
+
+To find the maximizing value of a parameter, we find the zeros of the
+partial derivative with respect to that parameter. This turns out to
+be straightforward for the above expression, because the parameters
+are in separate terms, so that many terms in the sums and quantifiers
+``disappear.''
+
+For all $u,i$,
+\begin{align}
+  0 =& \frac{ \partial \LLL{D}{\theta} }{ \partial \theta^U_i(u) }
+  = \sum_{r,m,j} \frac{ n_{r,u,m,i,j} }{ \theta^U_i(u) } - \lambda^U_i
+  \Rightarrow &
+  \theta^U_i(u) =& \frac{ \sum_{r,m,j} n_{r,u,m,i,j} }{ \lambda^U_i } \\
+  1 =& \sum_u \theta^U_i(u) 
+  = \sum_u \frac{ \sum_{r,m,j} n_{r,u,m,i,j} }{ \lambda^U_i }
+  \Rightarrow &
+  \lambda^U_i =& \sum_{r,u,m,j} n_{r,u,m,i,j} \\
+  & \therefore \theta^U_i(u)
+  = \frac{ \sum_{r,m,j} n_{r,u,m,i,j} }{ \sum_{r,u,m,j} n_{r,u,m,i,j} }
+  = \frac{ n_{u,i} }{ n_M }
+\end{align}
+This makes intuitive sense, since $\theta^U_i(u) = \PP{U_{i,j} =
+u}{\theta^U_i}$ for any movie $j$. The probability that we see the
+romantic in a user is the number of her other ratings where it was the
+romantic in her speaking, over her total number of ratings.
+
+Similarly (almost symmetrically), we find:
+\begin{align}
+\forall m,j,\ \theta^M_j(m) =& \frac{ n_{m,j} }{ n_U } &
+\forall r,u,m,\ \theta^M_j(m) =& \frac{ n_{r,u,m} }{ n_{u,m} }
+\end{align}
+
+However, we do not have complete data---we do not have the above
+counts, since we do not know the user-/movie-type assignments. Since
+the incomplete data does not yield an analytical solution, we must use
+a numerical approach, namely an E-M algorithm. This algorithm
+iteratively updates the parameters in the M-step based on
+intermediately calculated posteriors in the E-step. Essentially, we
+use the posteriors to find the {\em expected} counts in the above
+equations.
+
+\subsubsection{E-step}
+
+For all $i \in \range{n_M}, j \in \range{n_M}$, we calculate the
+posterior.
+\begin{align}
+& \PP{ U_{i,j} = u, M_{i,j} = m }{ R = \mat{R}, \theta } \\
+=& \PP{ U_{i,j} = u, M_{i,j} = m }{ R_{i,j} = r_{i,j}, \theta^U_i,
+  \theta^M_j, \theta^R }
+&&
+\text{by
+the independencies in the graphical model's moralized ancestral graph
+(TODO figures?)} \\
+=& \frac{1}{Z} \left(
+\begin{aligned}
+& \PP{R_{i,j} = r_{i,j} }{U_{i,j} = u, M_{i,j} = m, \theta^R} \\
+& \PP{U_{i,j} = u, M_{i,j} = m}{\theta^U_i, \theta^M_j}
+\end{aligned} \right)
+&& \text{by Bayes' rule, where $Z = \PP{R_{i,j} = r_{i,j}}{\theta}$ is a
+  normalizing constant defined below} \\
+=& \frac{1}{Z} \left(
+\begin{aligned}
+& \PP{R_{i,j} = r_{i,j} }{U_{i,j} = u, M_{i,j} = m, \theta^R} \\
+& \PP{U_{i,j} = u }{\theta^U_i}
+  \PP{M_{i,j} = m }{\theta^M_j}
+\end{aligned} \right)
+&& \text{by the independencies in the graphical model's
+  moralized ancestral graph} \\
+=& \frac{1}{Z} \theta^R_{u,m}(r_{i,j}) \theta^U_i(u) \theta^M_j(m)
+\end{align}
+Above,
+\begin{align}
+  Z =& \sum_{u,m} \PP{U = u, M = m}{R = r, \theta^U_i, \theta^M_j,
+    \theta^R}
+\end{align}
+
+For any $i,j$,
+letting $U = U_{i,j}, M = M_{i,j}, R = R_{i,j}$,
+we can marginalize the above joint distribution over $M$ and $U$
+to get the distributions over $U$ and $M$, respectively:
+
+\begin{align}
+  \PP{U = u}{R = r, \theta^U_i, \theta^M_j, \theta^R}
+  =& \sum_m \PP{U = u, M = m}{R = r, \theta^U_i, \theta^M_j, \theta^R}
+\\
+  \PP{U = u}{R = r, \theta^U_i, \theta^M_j, \theta^R}
+  =& \sum_m \PP{U = u, M = m}{R = r, \theta^U_i, \theta^M_j, \theta^R}
+\end{align}
+
+\subsubsection{M-step}
+
+Now we can use these posterior values to find expected counts in order
+to update the parameters.
+
+For all $i \in \range{n_U}$, for any $j \in \range{n_M}$,
+\begin{align}
+  \E{n_{u,i}}{\mat{R}, \theta}
+  =& \E{ \sum_{r,m,j} n_{r,u,m,i,j} }{R = \mat{R}, \theta} \\
+  =& \sum_{r,m,j} \E{ n_{r,u,m,i,j} }{R = \mat{R}, \theta} \\
+  =& \sum_{r,m,j} \left[
+    0 + 1 \cdot \PP{ R_{i,j} = r, U_{i,j} = u, M_{i,j} = m }{R = \mat{R}, \theta}
+  \right] \\
+  =& \sum_j \PP{U_{i,j} = u}{R = \mat{R}, \theta}
+  && \text{marginalized $M$, observed $R$} \\
+  =& \sum_j \PP{U_{i,j} = u}{R_{i,j} = r_{i,j}, \theta^R_{u,m},
+    \theta^U_i, \theta^M_j}
+  && \text{independencies in graph} \\
+  {\theta^U_i}'(u)
+  =& \E{ \frac{ n_{u,i}}{ n_M } }{\theta} && \text{TODO reference the
+    equation num} \\
+  =& \frac{1}{n_M} \sum_j \PP{U_{i,j} = u}{ R_{i,j} = r_{i,j}, \theta^R_{u,m},
+    \theta^U_i, \theta^M_j }
+  && \text{weighted sum the row}
+\end{align}
+
+Similarly, for all $j \in \range{n_M}$,
+\begin{align}
+  {\theta^M_j}'(m) =&
+  \frac{1}{n_U} \sum_i \PP{M = m}{
+    R_{i,j} = r_{i,j}, \theta^R_{u,m}, \theta^U_i, \theta^M_j}
+\end{align}
+
+Finally, for all $u \in \range{k_U}, m \in \range{k_M}$,
+\begin{align}
+  {\theta^R_{u,m}}'(r)
+  =& \E{ \frac{n_{r,u,m}}{n_{u,m}} }{\theta} \\
+  =& \frac{ \E{n_{r,u,m} }{\theta} }{ \E{n_{u,m}}{\theta} }
+  && \text{TODO how to justify this?} \\
+  =& \frac{\sum_{i,j: r_{i,j} = r} \PP{U_{i,j} = u, M_{i,j} = m}{
+      R_{i,j} = r_{i,j}, \theta^R_{u,m}, \theta^U_i, \theta^M_j}
+  }{ \sum_{i,j} \PP{U_{i,j} = u, M_{i,j} = m}{
+      R_{i,j} = r_{i,j}, \theta^R_{u,m}, \theta^U_i, \theta^M_j} } \\
+\end{align}
+
+\subsection{Results}
+
+TODO This turns out to work well.
+
+\section{Linear Regression + EM-like alternate update}
+
+\subsection{Overview}
+The goal of the algorithm is to find a low-rank approximation of the sparse rating matrix
+\begin{equation}
+R \approx MU
+\end{equation}
+where $M$ is a $n_M$-by-$d$ movie property matrix, $U$ is a
+$d$-by-$n_U$ user property matrix, and $d$ is the dimension of the
+low-rank approximation. Due to the missing entries of $R$, $M$ and $U$
+cannot be obtained from singular value decomposition. Instead, the
+algorithm learns $M$ and $U$ using linear regression and an EM-like
+alternate update algorithm.
+
+\subsection{Learning Algorithm}
+
+At the beginning of the algorithm, $M$ is randomly initialized and fixed. Then the $i$th column of $U$ is learned by regular linear regression as follows;
+\begin{equation}
+\vect{u}_i=(\check{M}^T\check{M})^{-1}\check{M}^T \check{\vect r}_i
+\end{equation}
+Where $\check{\vect r}_i$ is a column vector constructed from the $i$th column of the rating matrix $R$, by excluding the missing elements from it. For example, if the $i$th column of $R$ is $[2 \quad \circ \quad 4 \quad \circ \quad \circ \quad 5 \quad \circ]^T$ where``$\circ$'' means missing element, then $\check{r}_i = [2 \quad 4 \quad 5]^T$. $U_i$ is a matrix with the corresponding columns of $U$.
+
+Then $U$ is fixed in the next step, and each row of $M$ is updated in the exactly same manner. These steps are repeated until the training RMSE converges, just as EM algorithm. 
+
+The important fact is that, by repeating this iteration, the training RMSE monotonically decreases, and eventually converges to the (local) optimum. Linear regression finds the parameter which minimizes the log likelihood given the following normal distribution with arbitrary fixed variance $\sigma^2$;
+\begin{equation}
+r_{i,j}\sim N(\vec{m}_i \cdot {\vect u}_j, \sigma^2)
+\end{equation}
+where $\vec{m}_i$ is the $i$ th row of $M$ and ${\vect u}_j$ is $j$ th column of $U$.
+
+Thus, just as EM algorithm, the log likelihood on the training data monotonically decreases in each iteration. The RMSE is exactly same as the log likelihood when $\sigma = 1/\sqrt{2}$. Thus, the training RMSE monotonically decreases by iterations.
+
+\subsection{Estimation}
+Given the trained matrices $U$ and $M$, the maximum likelihood estimation of the ratings can be easily obtained as follows;
+\begin{equation}
+\hat{r}_{i,j}=\vec{m}_i \cdot {\vect u}_j
+\end{equation}
+
+Although the actual ratings are given as integer numbers from one to five, the estimations by this algorithm are real numbers. We use the real number outputs without rounding them. However, since ratings are from one to five, the estimations above five are turned into five, and those below one are turned into one. We call it \textit{rating range correction}\footnote{Is there more appropriate name for this....??}.
+
+\subsection{Result}
+
+Since the initial value of $M$ is randomly chosen the result is stochastic, and in fact it appears that the result is very sensitive to the initial value of $M$. Figure XX shows the typical result. The training RMSE monotonically decreases over iterations as we expected, but test RMSE does not necessarily monotonically decreases. There is a large gap between training RMSE and test RMSE, indicating that the algorithm poorly overfits to the training data.
+
+
+
+\section{Appendix}
+
+\subsection{Mixture Models}
+
+Here are the variables we're using for the mixture models:
+
+\begin{itemize}
+\item $\theta$: the entire set of parameters. TODO explain the sharing
+  (but not here)
+  \begin{itemize}
+  \item $\theta^U_i(u)$: the probability distribution over user types
+    $u$ for a user $i$ (think
+    of this as a table). This is shared by all user-movie ratings for
+    user $i$.
+  \item $\theta^M_j(m)$: the probability distribution over movie
+    types $m$ for a movie $j$. This is shared by all user-movie ratings for movie $j$.
+  \item $\theta^R_{u,m}(r)$: the probability distributions over
+    ratings $r$ for user type $u$ and movie type $m$. This is shared
+    by all user-movie ratings $i,j$.
+  \end{itemize}
+\item Dimensions
+  \begin{itemize}
+  \item $n_U$: number of users
+  \item $n_M$: number of movies
+  \item $k_U$: number of user types
+  \item $k_M$: number of movie types
+  \end{itemize}
+\item Indexes. This allows us to omit ranges in sums and quantifiers.
+  \begin{itemize}
+  \item $i$: generally used to index over users
+  \item $j$: generally used to index over movies
+  \item $u$: generally used to index over user types
+  \item $m$: generally used to index over movie types
+  \end{itemize}
+\item Random variables
+  \begin{itemize}
+  \item $U_i$: the user type of user $i$
+  \item $M_j$: the movie type of movie $j$
+  \item $R_{i,j}$: the rating user $i$ gave for movie $j$
+  \end{itemize}
+\end{itemize}
+
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{comment}
 
 \subsection{Mixture Model 1}
 
@@ -93,134 +444,4 @@ M-step:
 
 TODO finish/correct above equations
 
-\subsection{Mixture Model 2}
-
-TODO insert graphical model
-
-TODO finish/correct below equations
-
-E-step:
-
-\begin{align*}
-\end{align*}
-
-TODO
-
-M-step:
-
-For all $i \in \range{N}$,
-
-\begin{align*}
-  & \PP{ U = u }{ \theta^U_i } \\
-  =& \frac{ \N{user $i$'s movies of user type $u$} }{ \N{user
-      $i$'s movies} } \\
-  =& \frac{1}{m} \sum_{j=1}^m \PP{ U = u }{ R = r_{i,j}, \theta^U_i }
-\end{align*}
-
-TODO need to explain the above unintuitive expression over movies!
-
-For all $j \in \range{N}$,
-
-\begin{align*}
-  & \PP{ M = m }{ \theta^M_j } \\
-  =& \frac{ \N{movie $j$'s users of movie type $m$} }{ \N{movie $j$'s users} } \\
-  =& \frac{1}{m} \sum_{j=1}^m \PP{ U = u }{ R = r_{i,j}, \theta^U_i }
-\end{align*}
-
-For all $u \in \range{K_U}, m \in \range{K_M}$,
-
-\begin{align*}
-& \PP{ R = r }{ U = u, M = m, \theta^R } \\
-=& \frac{
-  \N{R = r, U = u, M = m}
-}{
-  \N{U = u, M = m}
-} \\
-=& \frac{
-  \sum_{i,j: r_{i,j} = r}
-  \PP{U = u, M = m}{R = r, \theta^R, \theta^U_i, \theta^M_j }
-}{
-  \sum_{i,j}
-  \PP{U = u, M = m}{R = r, \theta^R, \theta^U_i, \theta^M_j }
-}
-\end{align*}
-
-TODO need to derive and verify all these by maximizing the likelihood.
-
-TODO where do the thetaU and thetaM come from above?
-
-TODO make sure we get the semantics right (of the indexes $i$ and $j$).
-
-\section{Linear Regression + EM-like alterate update}
-
-\subsection{Overview}
-The goal of the algorithm is to find the low-rank approximation of the sparse rating matrix
-\begin{equation}
-R \approx  MU
-\end{equation}
-where $M$ is $n_m$ by $d$ movie property matrix, $U$ is $d$ by $n_u$ user property matrix, and $d$ is the dimension of the low-rank approximation. Due to the missing entries of $R$, $M$ and $U$ cannot be obtained from singular value decomposition. Instead, the algorithm learns $M$ and $U$ using linear regression and EM-like alternate update algorithm.
-\subsection{Learning Algorithm}
-
-At the begging of the algorithm, $M$ is randomly initialized and fixed. Then the $i$th column of $U$ is learned by regular linear regression as follows;
-\begin{equation}
-\vect{u}_i=(\check{M}^T\check{M})^{-1}\check{M}^T \check{\vect r}_i
-\end{equation}
-Where $\check{\vect r}_i$ is a column vector constructed from the $i$th column of the rating matrix $R$, by excluding the missing elements from it. For example, if the $i$th column of $R$ is $[2 \quad \circ \quad 4 \quad \circ \quad \circ \quad 5 \quad \circ]^T$ where``$\circ$'' means missing element, then $\check{r}_i = [2 \quad 4 \quad 5]^T$. $U_i$ is a matrix with the corresponding columns of $U$.
-
-Then $U$ is fixed in the next step, and each row of $M$ is updated in the exactly same manner. These steps are repeated until the training RMSE converges, just as EM algorithm. 
-
-The important fact is that, by repeating this iteration, the training RMSE monotonically decreases, and eventually converges to the (local) optimum. Linear regression finds the parameter which minimizes the log likelihood given the following normal distribution with arbitrary fixed variance $\sigma^2$;
-\begin{equation}
-r_{i,j}\sim N(\vec{m}_i \cdot {\vect u}_j, \sigma^2)
-\end{equation}
-where $\vec{m}_i$ is the $i$ th row of $M$ and ${\vect u}_j$ is $j$ th column of $U$.
-
-Thus, just as EM algorithm, the log likelihood on the training data monotonically decreases in each iteration. The RMSE is exactly same as the log likelihood when $\sigma = 1/\sqrt{2}$. Thus, the training RMSE monotonically decreases by iterations.
-
-\subsection{Estimation}
-Given the trained matrices $U$ and $M$, the maximum likelihood estimation of the ratings can be easily obtained as follows;
-\begin{equation}
-\hat{r}_{i,j}=\vec{m}_i \cdot {\vect u}_j
-\end{equation}
-
-Although the actual ratings are given as integer numbers from one to five, the estimations by this algorithm are real numbers. We use the real number outputs without rounding them. However, since ratings are from one to five, the estimations above five are turned into five, and those below one are turned into one. We call it \textit{rating range correction}\footnote{Is there more appropriate name for this....??}.
-
-\subsection{Result}
-
-Since the initial value of $M$ is randomly chosen the result is stochastic, and in fact it appears that the result is very sensitive to the initial value of $M$. Figure XX shows the typical result. The training RMSE monotonically decreases over iterations as we expected, but test RMSE does not necessarily monotonically decreases. There is a large gap between training RMSE and test RMSE, indicating that the algorithm poorly overfits to the training data.
-
-
-
-\section{Appendix}
-
-\subsection{Mixture Models}
-
-Here are the variables we're using for the mixture models:
-
-\begin{itemize}
-\item $\theta$: the entire set of parameters
-  \begin{itemize}
-  \item $\theta_U$: the probability distribution over user types (think
-    of this as a table)
-  \item $\theta_M$: the probability distribution over movie types
-  \item $\theta_R(k,l)$: the probability distributions over ratings for user
-    type $l$ and user type $k$.
-  \end{itemize}
-\item Indexes
-  \begin{itemize}
-  \item $i$: generally used to index over users
-  \item $j$: generally used to index over movies
-  \item $u$: generally used to index over user types
-  \item $m$: generally used to index over movie types
-  \end{itemize}
-\item Random variables
-  \begin{itemize}
-  \item $K$: number of user types
-  \item $L$: number of movie types
-  \item $U_i$: the user type of user $i$
-  \item $M_j$: the movie type of movie $j$
-  \item $R_{i,j}$: the rating user $i$ gave for movie $j$
-  \end{itemize}
-\end{itemize}
-
-\end{document}
+\end{comment}
