@@ -3,18 +3,8 @@
 \else
 
 \documentclass{article}
-\usepackage{amsmath, amssymb}
-\usepackage{comment}
 
-\newcommand{\E}    [2]{{ \textrm{E} \left[ #1 \mid #2 \right] }}
-\newcommand{\LL}   [2]{{ L \left( #1 \mid #2 \right) }}
-\newcommand{\LLL}  [2]{{ l \left( #1 \mid #2 \right) }}
-\newcommand{\N}    [1]{{ \# \left( \textrm{ #1 } \right) }}
-\newcommand{\PO}   [1]{{ \Pr \left( #1 \right) }}
-\newcommand{\PP}   [2]{{ \PO{ #1 \mid #2 } }}
-\newcommand{\mat}  [1]{{ \bf #1 }}
-\newcommand{\range}[1]{{ \left\{ 1, \dots, #1 \right\} }}
-\newcommand{\vect} [1]{{ \mbox{\boldmath $#1$} }}
+\include{header}
 
 \begin{document}
 
@@ -61,24 +51,32 @@ Although the actual ratings are given as integer numbers from one to five, the e
 
 \subsection{Result}
 
-Since the initial value of $M$ is randomly chosen the result is stochastic, and in fact it appears that the result is very sensitive to the initial value of $M$. Figure XX shows the typical result. The training RMSE monotonically decreases over iterations as we expected, but test RMSE does not necessarily monotonically decreases. There is a large gap between training RMSE and test RMSE, indicating that the algorithm poorly overfits to the training data.
+Since the initial value of $M$ is randomly chosen, the result is stochastic. In fact it appears that the result is very sensitive to the initial value of $M$. Figure XX shows the typical result. The training RMSE monotonically decreases over iterations as we expected, but test RMSE does not necessarily monotonically decreases. There is a large gap between training RMSE and test RMSE, indicating that the algorithm poorly overfits to the training data.
 
-% •\‚Ì‘}“ü
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics{figure/lrem_typical_plot.eps}
+  \end{center}
+  \caption{}
+  \label{fig:lrem_typical_plot.eps}
+\end{figure}
+
+
 \begin{table}[htbp]
  \caption{}
  \begin{center}
-  \begin{tabular}{|c||c|c|c|}
+  \begin{tabular}{|c|c||c|c|c|}
     \hline
-      & \multicolumn{3}{|c|}{sparsity} \\
+    \multicolumn{2}{|c|}{}  & \multicolumn{3}{|c|}{sparsity} \\
+    \cline{3-5}
+     \multicolumn{2}{|c|}{}    &  0.3  &  0.5  & 0.8   \\
     \hline
-        &  0.3  &  0.5  & 0.8   \\
     \hline
-    \hline
-       &  0.808  &  0.795  &  0.789  \\
-    \hline
-       &  0.859  &  0.790  & 0.772   \\
-    \hline
-       &  0.933  &  0.808  &  0.772  \\
+       & 1 &  0.808  &  0.795  &  0.789  \\
+    \cline{2-5}
+     $d$ & 2 &  0.859  &  0.790  & 0.772   \\
+    \cline{2-5}
+     & 3 &  0.933  &  0.808  &  0.772  \\
     \hline
   \end{tabular}
  \end{center}
