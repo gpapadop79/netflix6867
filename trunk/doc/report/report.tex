@@ -25,8 +25,9 @@ and columns correspond to movies, such that entry $r_{i,j} \in
 The NetFlix dataset is large: it contains 480,189 users, 17,770
 movies, and 100,480,507 ratings. MATLAB's in-memory data management is
 not amenable to datasets of such scale; hence, we TODO describe how we
-got this small fully packed rating matrix, and why we didn't choose to
-go with the full netflix dataset.
+got this small fully packed rating matrix. Our subset has 51 movies
+and 892 users. When dividing this up into training and test data, we
+ended up with a large number of training and testing data.
 
 \paragraph{TODO: Perfomance measure: room mean square error(RMSE)}
 
@@ -40,8 +41,9 @@ Model, and is the one presented in 6.867 lecture. TODO citation
 For this part of our project, we rigorously derived the E-M algorithm,
 implement the algorithm in MATLAB, and analyzed its results. The
 following sections are organized as follows. First, we describe and
-justify the model. Second, we derive the E-M algorithm. Third, we
-evaluate its performance by using TODO 
+justify the model, then derive the E-M algorithm. We briefly describe
+the implementation and analyze the complexity. Finally, we evaluate
+its performance by using TODO
 
 \subsection{Overview}
 
@@ -78,9 +80,20 @@ horror movie). We will loosely use the term ``rating'' to mean either
 the act of the rating or the rating value itself; hopefully the
 meaning remains clear from the context.
 
+It is natural to use multinomial distributions for generating the user
+types for a user, and the movie types for a movie. We are also using
+multinomial distributions to generate ratings given a user type and
+movie type.
+
 TODO? discuss why the alternative model doesn't work
 
 Figure (TODO) shows the . TODO insert graphical model
+
+TODO describe the following better:
+This model works well for collaborative filtering, but it is not that
+useful for predicting the . Such a task would be a difficult one,
+anyway, since we would not have any information about the new users,
+and would only be able to go on aggregate distributions.
 
 \subsection{E-M Algorithm}
 
@@ -89,15 +102,15 @@ TODO reformat below equations
 \subsubsection{M-step with complete data}
 
 To derive the E-M algorithm, it is helpful to start by assuming that
-we have ``complete data''---that is, for each rating $i,j$, we know
-precisely which user type $u$ and movie type $m$ the rating belongs
-to.  With this information, we can directly and analytically find the
-parameters that maximize the likelihood of the data.  We can
-equivalently optimize the log-likelihood: $\arg \max_\theta
-\LL{D}{\theta} = \arg \max_\theta \log \LL{D}{\theta}$.
+we have ``complete data''---that is, for each of the (observed)
+ratings $i,j$, we know precisely which user type $u$ and movie type
+$m$ the rating belongs to. With this information, we can directly and
+analytically find the parameters that maximize the likelihood of the
+data. We can equivalently optimize the log-likelihood: $\arg
+\max_\theta \LL{D}{\theta} = \arg \max_\theta \log \LL{D}{\theta}$.
 \begin{align}
   \LLL{D}{\theta} =& \log \LL{D}{\theta} \\
-  =& \sum_{i,j} \left[
+  =& \sum_{i,j \in I} \left[
     \begin{aligned}
       & \log \PP{R_{i,j} = r_{i,j}}{U_{i,j} = u_{i,J}, M_{i,j} = m_{i,j},
         \theta^R} + \\
@@ -105,7 +118,7 @@ equivalently optimize the log-likelihood: $\arg \max_\theta
       & \log \PP{M_{i,j} = m_{i,j}}{\theta^M_j}
     \end{aligned}
   \right] \\
-  =& \sum_{i,j} \left[
+  =& \sum_{i,j \in I} \left[
     \log \theta^R_{u_{i,j},m_{i,j}}(r_{i,j}) +
     \log \theta^U_i(u_{i,j}) +
     \log \theta^M_j(m_{i,j})
@@ -275,7 +288,71 @@ Finally, for all $u \in \range{k_U}, m \in \range{k_M}$,
       R_{i,j} = r_{i,j}, \theta^R_{u,m}, \theta^U_i, \theta^M_j} } \\
 \end{align}
 
-\subsection{Results}
+\subsection{Implementation}
+
+We implemented the E-M algorithm in MATLAB. The performance was
+poor when run on the dataset.
+
+\subsection{Complexity Analysis}
+
+TODO the complexity
+
+The number of parameters in our system is
+\begin{align}
+(k_R - 1) \cdot k_U \cdot k_M +
+(k_U - 1) \cdot n_U +
+(k_M - 1) \cdot n_M
+\end{align}
+(A multinomial of $k$ possible outcomes needs only $k-1$ parameters.)
+In the M-step, we need to update this number of parameters.
+
+The most time consuming part of the algorithm is the $d$ by $d$ matrix inversion $(\check{M}^T\check{M})^{-1}$ in Eq. \ref{eq:lrem_core}. In practice, Gauss Elimination, which has a complexity of $\OO{n^3}$, is used to find the solution instead of complete matrix inversion. The inverse of matrix is computed $(n_U+n_M)$ times in each iteration. Thus the time complexity of the algorithm is 
+\begin{equation}
+\OO{d^3N(n_U+n_M)}
+\end{equation}
+where $N$ is the number of iterations.
+
+\subsection{Performance Evaluation}
+
+TODO really need to check this!
+
+In choosing the number of user types and movie types, an approach
+would be to try some different values and see how well they optimize
+some metric, settling with the value that best optimizes this
+metric. However, if we simply let the metric be the likelihood, then
+there will be no motivation to go with anything but the largest number
+of clusters.  the number of user types and number of movie types will
+become equal to the number of cell types. , and then decide to .
+
+One common and easy-to-use metric is the {\em Bayesian information
+  criterion} (BIC), also known as the {\em Schwarz information
+  criterion} (SIC). The formula for the BIC is
+\begin{align}
+-2 \cdot \log \LL{R = \mat R}{\hat{\theta}} + k \log n
+\end{align}
+where $k$ is the dimensionality of the model space and $n = \card{I}$
+is the number of rating observations. The model with the lower value
+of BIC is the one to be preferred: increasing the log-likelihood
+decreases the BIC, but increasing the number of parameters
+increases (penalizes) the BIC.
+
+In our model, we have 
+\begin{align}
+\LLL{R = \mat R}{\theta}
+  =& \sum_{i,j \in I} \left[
+    \begin{aligned}
+      & \log \PP{R_{i,j} = r_{i,j}}{U_{i,j} = u_{i,J}, M_{i,j} = m_{i,j},
+        \theta^R} + \\
+      & \log \PP{U_{i,j} = u_{i,j}}{\theta^U_i} + \\
+      & \log \PP{M_{i,j} = m_{i,j}}{\theta^M_j}
+    \end{aligned}
+  \right] \\
+  =& \sum_{i,j \in I} \left[
+    \log \theta^R_{u_{i,j},m_{i,j}}(r_{i,j}) +
+    \log \theta^U_i(u_{i,j}) +
+    \log \theta^M_j(m_{i,j})
+  \right] \\
+\end{align}
 
 TODO This turns out to work well.
 
@@ -305,12 +382,13 @@ Here are the variables we're using for the mixture models:
     ratings $r$ for user type $u$ and movie type $m$. This is shared
     by all user-movie ratings $i,j$.
   \end{itemize}
-\item Dimensions
+\item Dimensions and sets
   \begin{itemize}
   \item $n_U$: number of users
   \item $n_M$: number of movies
   \item $k_U$: number of user types
   \item $k_M$: number of movie types
+  \item $I$: the set of indexes $i,j$ of observed ratings
   \end{itemize}
 \item Indexes. This allows us to omit ranges in sums and quantifiers.
   \begin{itemize}
