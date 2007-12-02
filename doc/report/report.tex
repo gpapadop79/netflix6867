@@ -55,11 +55,14 @@ our model given the parameters is then
   \LL{D}{\theta}
   =& \PP{ R_{1,1} = r_{1,1}, \dots, R_{n_U,n_M} = r_{n_U,n_M} }{
     \theta } \\
-  =& \prod_{i,j} \sum_{u,m}
-  \PP{ R_{i,j} = r_{i,j} }{ U_{i,j} = u, M_{i,j} = m, \theta^R_{u,m} } \\
-  & \PP{ U_{i,j} = u }{ \theta^U_i }
-  \PP{ M_{i,j} = m }{ \theta^M_j } \\
-  =& \prod_{i,j} \sum_{u,m} \theta^R_{u,m}(r) \theta^U_i(u) \theta^M_j(m)
+  =& \prod_{i,j} \sum_{u,m} \left[
+    \begin{aligned}
+      & \PP{ R_{i,j} = r_{i,j} }{ U_{i,j} = u, M_{i,j} = m,
+        \theta^R_{u,m} } \cdot \\
+      & \PP{ U_{i,j} = u }{ \theta^U_i } \cdot
+      \PP{ M_{i,j} = m }{ \theta^M_j }
+    \end{aligned} \right] \\
+  =& \prod_{i,j} \sum_{u,m} \theta^R_{u,m}(r) \cdot \theta^U_i(u) \cdot \theta^M_j(m)
 \end{align}
 We see that there are three sets of parameters, and our approach is to
 use an E-M algorithm to perform maximum likelihood estimation of these
@@ -250,7 +253,7 @@ For all $i \in \range{n_U}$, for any $j \in \range{n_M}$,
     equation num} \\
   =& \frac{1}{n_M} \sum_j \PP{U_{i,j} = u}{ R_{i,j} = r_{i,j}, \theta^R_{u,m},
     \theta^U_i, \theta^M_j }
-  && \text{weighted sum the row}
+  && \text{weighted sum over the row}
 \end{align}
 
 Similarly, for all $j \in \range{n_M}$,

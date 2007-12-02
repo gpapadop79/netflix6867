@@ -51,14 +51,14 @@ Although the actual ratings are given as integer numbers from one to five, the e
 
 \subsection{Result}
 
-Since the initial value of $M$ is randomly chosen, the result is stochastic. In fact it appears that the result is very sensitive to the initial value of $M$. Figure \ref{fig:lrem_typical_plot.eps} shows the typical result of training RMSE and test RMSE as well as the RMSE when the estimation is simply the average rating of each movie (i.e. zero-order estimation). The training RMSE monotonically decreases over iterations as we expected, but test RMSE does not necessarily monotonically decreases. There is a large gap between training RMSE and test RMSE, indicating that the algorithm poorly overfits to the training data.
+Since the initial value of $M$ is randomly chosen, the result is stochastic. In fact it appears that the result is very sensitive to the initial value of $M$. Figure \ref{fig:lrem_typical_plot} shows the typical result of training RMSE and test RMSE as well as the RMSE when the estimation is simply the average rating of each movie (i.e. zero-order estimation). The training RMSE monotonically decreases over iterations as we expected, but test RMSE does not necessarily monotonically decreases. There is a large gap between training RMSE and test RMSE, indicating that the algorithm poorly overfits to the training data.
 
 \begin{figure}[h]
   \begin{center}
-    \includegraphics[scale=0.7]{figure/lrem_typical_plot.eps}
+    \includegraphics[scale=0.7]{figure/lrem_typical_plot}
   \end{center}
   \caption{}
-  \label{fig:lrem_typical_plot.eps}
+  \label{fig:lrem_typical_plot}
 \end{figure}
 
 

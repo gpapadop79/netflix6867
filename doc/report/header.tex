@@ -1,19 +1,13 @@
 \usepackage{amsmath, amssymb}
 \usepackage{comment}
-
 \usepackage{graphicx}
 
-
-
-
 \newcommand{\E}    [2]{{ \textrm{E} \left[ #1 \mid #2 \right] }}
-\newcommand{\LL}   [2]{{ L \left( #1 \mid #2 \right) }}
-\newcommand{\LLL}  [2]{{ l \left( #1 \mid #2 \right) }}
+\newcommand{\LL}   [2]{{ L \left( #1 \,\middle|\, #2 \right) }}
+\newcommand{\LLL}  [2]{{ l \left( #1 \,\middle|\, #2 \right) }}
 \newcommand{\N}    [1]{{ \# \left( \textrm{ #1 } \right) }}
 \newcommand{\PO}   [1]{{ \Pr \left( #1 \right) }}
-\newcommand{\PP}   [2]{{ \PO{ #1 \mid #2 } }}
+\newcommand{\PP}   [2]{{ \PO{ #1 \,\middle|\, #2 } }}
 \newcommand{\mat}  [1]{{ \bf #1 }}
 \newcommand{\range}[1]{{ \left\{ 1, \dots, #1 \right\} }}
 \newcommand{\vect} [1]{{ \mbox{\boldmath $#1$} }}
-
-
