@@ -1,5 +1,8 @@
 \documentclass{article}
 
+\usepackage[letterpaper, top=2cm, bottom=2cm, inner=2cm,
+outer=2cm, foot=.25in]{geometry}
+
 \include{header}
 
 \def\LaTeXe{c}
@@ -17,40 +20,43 @@ For our project, we implemented and evaluated several approaches to
 collaborative filtering a subset of the NetFlix Challenge dataset.
 
 \paragraph{Definition of the Rating Matrix}
-There are $n_U$ users and $n_M$ movies.  The {\em ratings matrix}
+There are $n_U$ users and $n_M$ movies.  The \term{ratings matrix}
 $\mat{R}$ is a $n_M$-by-$n_U$ matrix whose rows correspond to users
 and columns correspond to movies, such that entry $r_{i,j} \in
 \range{5}$ is the rating given by user $i$ to movie $j$.
 
 The NetFlix dataset is large: it contains 480,189 users, 17,770
 movies, and 100,480,507 ratings. MATLAB's in-memory data management is
-not amenable to datasets of such scale; hence, we TODO describe how we
-got this small fully packed rating matrix. Our subset has 51 movies
-and 892 users. When dividing this up into training and test data, we
-ended up with a large number of training and testing data.
+not amenable to datasets of such scale; hence, we \TODO{describe how
+  we got this small fully packed rating matrix}. Our packed matrix
+contains 51 movies and 892 users. When dividing this up into training
+and test data, we ended up with a large number of training and testing
+data.
 
-\paragraph{TODO: Perfomance measure: room mean square error(RMSE)}
+\paragraph{TODO: Perfomance measure: room mean square error (RMSE)}
 
 \section{Mixture Model}
 
 We use a mixture model to cluster together ratings based on user types
 and movie types. There are various other mixture models for
-collaborative filtering; this model is known as the Joint Mixture
-Model, and is the one presented in 6.867 lecture. TODO citation
+collaborative filtering; this model is the one presented in 6.867
+lecture 15 and is known as the \term{flexible mixture
+  model}~\cite{si03flexible}. A survey of various alternative models
+can be found in~\cite{cmu-study}.
 
 For this part of our project, we rigorously derived the E-M algorithm,
-implement the algorithm in MATLAB, and analyzed its results. The
-following sections are organized as follows. First, we describe and
-justify the model, then derive the E-M algorithm. We briefly describe
-the implementation and analyze the complexity. Finally, we evaluate
-its performance by using TODO
+implement the algorithm in MATLAB, and analyzed its results. In the
+following sections, we describe and justify the model, then derive the
+E-M algorithm and analyze its complexity. Next, we describe our
+implementation, and finally we evaluate its performance by using
+\TODO{what should our performance metric be?}
 
 \subsection{Overview}
 
-We say that {\em each user} has a distribution over user types (e.g.,
+We say that \term{each user} has a distribution over user types (\eg,
 mostly romantic, a bit of an intellectual), and each movie has a
 distribution over movie types (mostly horror, some action). Each pair
-of user type and movie type has a distribution over ratings (e.g.,
+of user type and movie type has a distribution over ratings (\eg,
 romantics tend to give horrors low ratings). The likelihood of
 our model given the parameters is then
 \begin{align}
@@ -58,22 +64,22 @@ our model given the parameters is then
   =& \PP{ R_{1,1} = r_{1,1}, \dots, R_{n_U,n_M} = r_{n_U,n_M} }{
     \theta } \\
   =& \prod_{i,j} \sum_{u,m} \left[
-    \begin{aligned}
-      & \PP{ R_{i,j} = r_{i,j} }{ U_{i,j} = u, M_{i,j} = m,
-        \theta^R_{u,m} } \cdot \\
-      & \PP{ U_{i,j} = u }{ \theta^U_i } \cdot
-      \PP{ M_{i,j} = m }{ \theta^M_j }
-    \end{aligned} \right] \\
-  =& \prod_{i,j} \sum_{u,m} \theta^R_{u,m}(r) \cdot \theta^U_i(u) \cdot \theta^M_j(m)
+    \PP{ R_{i,j} = r_{i,j} }{ U_{i,j} = u, M_{i,j} = m,
+      \theta^R_{u,m} } \cdot 
+    \PP{ U_{i,j} = u }{ \theta^U_i } \cdot
+    \PP{ M_{i,j} = m }{ \theta^M_j }
+  \right] \\
+  =& \prod_{i,j} \sum_{u,m}
+  \theta^R_{u,m}(r) \cdot \theta^U_i(u) \cdot \theta^M_j(m)
 \end{align}
 We see that there are three sets of parameters, and our approach is to
 use an E-M algorithm to perform maximum likelihood estimation of these
 parameters.
 
 Each cell has its own user and movie type. What does all this mean?
-Intuitively, we can think of each cell as the result of an {\em act}
+Intuitively, we can think of each cell as the result of an \term{act}
 of rating. Hence, every time a user rates a movie, we are randomly
-sampling from among the user's multiple personalities (e.g., the
+sampling from among the user's multiple personalities (\eg, the
 romantic in the user was rating this movie). We are also sampling from
 among the movie's multiple aspects (the user saw this movie as a
 horror movie). We will loosely use the term ``rating'' to mean either
@@ -83,21 +89,23 @@ meaning remains clear from the context.
 It is natural to use multinomial distributions for generating the user
 types for a user, and the movie types for a movie. We are also using
 multinomial distributions to generate ratings given a user type and
-movie type.
+movie type; this we do for simplicity. \TODO{have a better
+  explanation?}
 
-TODO? discuss why the alternative model doesn't work
+\TODO{insert figure here}
+Figure (TODO) shows our graphical model.
 
-Figure (TODO) shows the . TODO insert graphical model
-
-TODO describe the following better:
-This model works well for collaborative filtering, but it is not that
-useful for predicting the . Such a task would be a difficult one,
-anyway, since we would not have any information about the new users,
-and would only be able to go on aggregate distributions.
+\TODO{verify the following} Note that this model works for
+collaborative filtering for a static set of users and movies (filling
+in holes). New users/movies (augmenting our matrix with rows/columns
+that contain no data) would indeed be difficult to provide
+recommendations for regardless of model. However, even if these new
+rows/columns had data available, our approach requires re-training the
+model, because each user and each movie has its own distribution over
+user types and movie types. \TODO{say something about how we can get a
+  prior over these?}
 
 \subsection{E-M Algorithm}
-
-TODO reformat below equations
 
 \subsubsection{M-step with complete data}
 
@@ -114,8 +122,7 @@ data. We can equivalently optimize the log-likelihood: $\arg
     \begin{aligned}
       & \log \PP{R_{i,j} = r_{i,j}}{U_{i,j} = u_{i,J}, M_{i,j} = m_{i,j},
         \theta^R} + \\
-      & \log \PP{U_{i,j} = u_{i,j}}{\theta^U_i} + \\
-      & \log \PP{M_{i,j} = m_{i,j}}{\theta^M_j}
+      & \log \PP{U_{i,j} = u_{i,j}}{\theta^U_i} +  \log \PP{M_{i,j} = m_{i,j}}{\theta^M_j}
     \end{aligned}
   \right] \\
   =& \sum_{i,j \in I} \left[
@@ -141,19 +148,23 @@ particular,
 To allow ourselves to optimize the equations analytically, we can
 incorporate these into the equation by using LaGrange multipliers
 ($\lambda$s below):
-\begin{align}
-  \begin{aligned}
-    \sum_{r,u,m,i,j} n_{r,u,m,i,j} \left[
-      \log \theta^R_{u,m}(r) + \log \theta^U_i(u) + \log \theta^M_j(m)
-    \right] & \\
-    \mathbin{+} \lambda^R_{u,m} \left( 1 - \sum_r \theta^R_{u,m}(r) \right)
-    & \forall u,m \\
-    \mathbin{+} \lambda^U_i \left( 1 - \sum_u \theta^U_i(u) \right)
-    & \forall i \\
-    \mathbin{+} \lambda^M_j \left( 1 - \sum_m \theta^M_j(m) \right)
-    & \forall j
-  \end{aligned}
-\end{align}
+\begin{multline}
+  \sum_{r,u,m,i,j} n_{r,u,m,i,j} \left[
+    \log \theta^R_{u,m}(r) + \log \theta^U_i(u) + \log \theta^M_j(m)
+  \right] + \\
+  \left\{
+    \lambda^R_{u,m} \left( 1 - \sum_r \theta^R_{u,m}(r) \right)
+    \forall u,m 
+  \right\} +
+  \left\{
+    \lambda^U_i \left( 1 - \sum_u \theta^U_i(u) \right)
+    \forall i 
+  \right\} +
+  \left\{
+    \lambda^M_j \left( 1 - \sum_m \theta^M_j(m) \right)
+    \forall j
+  \right\}
+\end{multline}
 
 To find the maximizing value of a parameter, we find the zeros of the
 partial derivative with respect to that parameter. This turns out to
@@ -165,15 +176,15 @@ For all $u,i$,
 \begin{align}
   0 =& \frac{ \partial \LLL{D}{\theta} }{ \partial \theta^U_i(u) }
   = \sum_{r,m,j} \frac{ n_{r,u,m,i,j} }{ \theta^U_i(u) } - \lambda^U_i
-  \Rightarrow &
+  & \Rightarrow &&
   \theta^U_i(u) =& \frac{ \sum_{r,m,j} n_{r,u,m,i,j} }{ \lambda^U_i } \\
   1 =& \sum_u \theta^U_i(u) 
   = \sum_u \frac{ \sum_{r,m,j} n_{r,u,m,i,j} }{ \lambda^U_i }
-  \Rightarrow &
+  & \Rightarrow &&
   \lambda^U_i =& \sum_{r,u,m,j} n_{r,u,m,i,j} \\
-  & \therefore \theta^U_i(u)
-  = \frac{ \sum_{r,m,j} n_{r,u,m,i,j} }{ \sum_{r,u,m,j} n_{r,u,m,i,j} }
-  = \frac{ n_{u,i} }{ n_M }
+  &&&& \therefore \theta^U_i(u) 
+  =& \frac{ \sum_{r,m,j} n_{r,u,m,i,j} }{ \sum_{r,u,m,j} n_{r,u,m,i,j} }
+  = \frac{ n_{u,i} }{ n_M } \label{eq:pui}
 \end{align}
 This makes intuitive sense, since $\theta^U_i(u) = \PP{U_{i,j} =
 u}{\theta^U_i}$ for any movie $j$. The probability that we see the
@@ -182,8 +193,10 @@ romantic in her speaking, over her total number of ratings.
 
 Similarly (almost symmetrically), we find:
 \begin{align}
-\forall m,j,\ \theta^M_j(m) =& \frac{ n_{m,j} }{ n_U } &
+\forall m,j,\ \theta^M_j(m) =& \frac{ n_{m,j} }{ n_U }
+&
 \forall r,u,m,\ \theta^M_j(m) =& \frac{ n_{r,u,m} }{ n_{u,m} }
+\label{eq:prum}
 \end{align}
 
 However, we do not have complete data---we do not have the above
@@ -192,7 +205,7 @@ the incomplete data does not yield an analytical solution, we must use
 a numerical approach, namely an E-M algorithm. This algorithm
 iteratively updates the parameters in the M-step based on
 intermediately calculated posteriors in the E-step. Essentially, we
-use the posteriors to find the {\em expected} counts in the above
+use the posteriors to find the \term{expected} counts in the above
 equations.
 
 \subsubsection{E-step}
@@ -204,37 +217,36 @@ posterior.
 =& \PP{ U_{i,j} = u, M_{i,j} = m }{ R_{i,j} = r_{i,j}, \theta^U_i,
   \theta^M_j, \theta^R }
 &&
-\text{by
-the independencies in the graphical model's moralized ancestral graph
-(TODO figures?)} \\
+\text{independencies can be seen in graphical model} \\
 =& \frac{1}{Z} \left(
 \begin{aligned}
 & \PP{R_{i,j} = r_{i,j} }{U_{i,j} = u, M_{i,j} = m, \theta^R} \\
 & \PP{U_{i,j} = u, M_{i,j} = m}{\theta^U_i, \theta^M_j}
 \end{aligned} \right)
-&& \text{by Bayes' rule, where $Z = \PP{R_{i,j} = r_{i,j}}{\theta}$ is a
-  normalizing constant defined below} \\
+&& \text{by Bayes' rule; $Z$ is a normalizer} \\
 =& \frac{1}{Z} \left(
 \begin{aligned}
 & \PP{R_{i,j} = r_{i,j} }{U_{i,j} = u, M_{i,j} = m, \theta^R} \\
 & \PP{U_{i,j} = u }{\theta^U_i}
   \PP{M_{i,j} = m }{\theta^M_j}
 \end{aligned} \right)
-&& \text{by the independencies in the graphical model's
-  moralized ancestral graph} \\
+&& \text{independencies in graphical model} \\
 =& \frac{1}{Z} \theta^R_{u,m}(r_{i,j}) \theta^U_i(u) \theta^M_j(m)
+\label{eq:pumrij}
 \end{align}
 Above,
 \begin{align}
-  Z =& \sum_{u,m} \PP{U = u, M = m}{R = r, \theta^U_i, \theta^M_j,
+  Z = \PP{R_{i,j} = r_{i,j}}{\theta} = \sum_{u,m} \PP{U = u, M = m}{R = r, \theta^U_i, \theta^M_j,
     \theta^R}
 \end{align}
+The above independencies can be verified from the moralized ancestral
+graphs of our model, but de do not have space to illustrate these
+graphs here.
 
 For any $i,j$,
 letting $U = U_{i,j}, M = M_{i,j}, R = R_{i,j}$,
 we can marginalize the above joint distribution over $M$ and $U$
 to get the distributions over $U$ and $M$, respectively:
-
 \begin{align}
   \PP{U = u}{R = r, \theta^U_i, \theta^M_j, \theta^R}
   =& \sum_m \PP{U = u, M = m}{R = r, \theta^U_i, \theta^M_j, \theta^R}
@@ -262,8 +274,7 @@ For all $i \in \range{n_U}$, for any $j \in \range{n_M}$,
     \theta^U_i, \theta^M_j}
   && \text{independencies in graph} \\
   {\theta^U_i}'(u)
-  =& \E{ \frac{ n_{u,i}}{ n_M } }{\theta} && \text{TODO reference the
-    equation num} \\
+  =& \E{ \frac{ n_{u,i}}{ n_M } }{\theta} && \text{by Eq. \ref{eq:pui}} \\
   =& \frac{1}{n_M} \sum_j \PP{U_{i,j} = u}{ R_{i,j} = r_{i,j}, \theta^R_{u,m},
     \theta^U_i, \theta^M_j }
   && \text{weighted sum over the row}
@@ -279,53 +290,70 @@ Similarly, for all $j \in \range{n_M}$,
 Finally, for all $u \in \range{k_U}, m \in \range{k_M}$,
 \begin{align}
   {\theta^R_{u,m}}'(r)
-  =& \E{ \frac{n_{r,u,m}}{n_{u,m}} }{\theta} \\
-  =& \frac{ \E{n_{r,u,m} }{\theta} }{ \E{n_{u,m}}{\theta} }
-  && \text{TODO how to justify this?} \\
+  =& \E{ \frac{n_{r,u,m}}{n_{u,m}} }{\theta}
+  = \frac{ \E{n_{r,u,m} }{\theta} }{ \E{n_{u,m}}{\theta} }
+   \text{\TODO{how to justify this?}} \\
   =& \frac{\sum_{i,j: r_{i,j} = r} \PP{U_{i,j} = u, M_{i,j} = m}{
       R_{i,j} = r_{i,j}, \theta^R_{u,m}, \theta^U_i, \theta^M_j}
   }{ \sum_{i,j} \PP{U_{i,j} = u, M_{i,j} = m}{
       R_{i,j} = r_{i,j}, \theta^R_{u,m}, \theta^U_i, \theta^M_j} } \\
 \end{align}
 
-\subsection{Implementation}
-
-We implemented the E-M algorithm in MATLAB. The performance was
-poor when run on the dataset.
-
 \subsection{Complexity Analysis}
 
-TODO the complexity
-
-The number of parameters in our system is
-\begin{align}
-(k_R - 1) \cdot k_U \cdot k_M +
-(k_U - 1) \cdot n_U +
-(k_M - 1) \cdot n_M
-\end{align}
+Here is a break-down of various dimensions of our model and
+algorithm. Each parameter involves ``weighted sums'' over some number
+of components of the joint posterior over $U,M$ given the data $R$;
+the third column is the number of terms (the cost of the
+summations). The fourth column is the total complexity, the product of
+the second and third columns.
+\begin{center}
+  \begin{tabular}{c|c|c|c}
+    component & no.~parameters &
+    no.~posterior components & complexity
+    \\ \hline
+    $\theta_R$ & $(k_R - 1) \cdot k_U \cdot k_M$ &
+    $\OO{n_U \cdot n_M}$ &
+    $\OO{k_R \cdot k_U \cdot k_M \cdot n_U \cdot n_M}$ \\
+    $\theta_U$ & $(k_U - 1) \cdot n_U$ &
+    $\OO{k_M \cdot n_M}$ & $\OO{k_U \cdot n_U \cdot k_M \cdot n_M}$ \\
+    $\theta_M$ & $(k_M - 1) \cdot n_M$ &
+    $\OO{k_U \cdot n_U}$ & $\OO{k_M \cdot n_M \cdot k_U \cdot n_U}$ \\
+  \end{tabular}
+\end{center}
 (A multinomial of $k$ possible outcomes needs only $k-1$ parameters.)
-In the M-step, we need to update this number of parameters.
 
-The most time consuming part of the algorithm is the $d$ by $d$ matrix inversion $(\check{M}^T\check{M})^{-1}$ in Eq. \ref{eq:lrem_core}. In practice, Gauss Elimination, which has a complexity of $\OO{n^3}$, is used to find the solution instead of complete matrix inversion. The inverse of matrix is computed $(n_U+n_M)$ times in each iteration. Thus the time complexity of the algorithm is 
-\begin{equation}
-\OO{d^3N(n_U+n_M)}
-\end{equation}
-where $N$ is the number of iterations.
+The posterior joint distribution over $U,M$ given the data $R$ is in
+Eq. \ref{eq:pumrij}. This table is of size $k_U \cdot k_M \cdot k_R
+\cdot n_U \cdot n_M$.
+
+\TODO{what to say here?} The number of iterations is less
+straightforward to calculate.
 
 \subsection{Performance Evaluation}
 
-TODO really need to check this!
+We implemented the E-M algorithm in MATLAB. The MATLAB execution
+performance was poor when run on even our smaller dataset, but it
+allowed us to rapidly prototype a working implementation.
+
+We partitioned the cells of $\mat R$ into a training set matrix and a
+test set matrix. We ran the EM algorithm on the training set and
+calculated the \TODO{likelihood?} of these parameters generating the
+test set.
+
+
 
 In choosing the number of user types and movie types, an approach
 would be to try some different values and see how well they optimize
 some metric, settling with the value that best optimizes this
-metric. However, if we simply let the metric be the likelihood, then
-there will be no motivation to go with anything but the largest number
-of clusters.  the number of user types and number of movie types will
-become equal to the number of cell types. , and then decide to .
+metric. \TODO{really need to check the following!} However, if we
+simply let the metric be the likelihood, then we can simply blow up
+the number of parameters: have as many user types as there are users,
+and as many movie types as  there and number of movie types will equal to the
+number of cell types. , and then decide to .
 
-One common and easy-to-use metric is the {\em Bayesian information
-  criterion} (BIC), also known as the {\em Schwarz information
+One common and easy-to-use metric is the \term{Bayesian information
+  criterion} (BIC), also known as the \term{Schwarz information
   criterion} (SIC). The formula for the BIC is
 \begin{align}
 -2 \cdot \log \LL{R = \mat R}{\hat{\theta}} + k \log n
@@ -404,6 +432,12 @@ Here are the variables we're using for the mixture models:
   \item $R_{i,j}$: the rating user $i$ gave for movie $j$
   \end{itemize}
 \end{itemize}
+
+%% Bibliography
+%\setlength{\bibsep}{2pt}
+\footnotesize
+\bibliography{refs}
+\bibliographystyle{abbrvnat}
 
 \end{document}
 

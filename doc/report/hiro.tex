@@ -57,7 +57,7 @@ The algorithm is implemented with MATLAB and worked successfully.
 
 Since the initial value of $M$ is randomly chosen, the result is stochastic. In fact it appears that the result is very sensitive to the initial value of $M$. Figure \ref{fig:lrem_typical_plot.eps} shows the typical result of the training RMSE and the test RMSE as well as the RMSE when the estimation is simply the average rating of each movie (i.e. zero-order estimation). The training RMSE monotonically decreases over iterations as we expected, but test RMSE does not necessarily monotonically decreases. There is a large gap between training RMSE and test RMSE, indicating that the algorithm badly overfits to the training data.
 
-\begin{figure}[h]
+\begin{figure}[ht]
   \begin{center}
     \includegraphics[scale=0.7]{figure/lrem_typical_plot.eps}
   \end{center}
@@ -68,7 +68,7 @@ Since the initial value of $M$ is randomly chosen, the result is stochastic. In 
 Table \ref{table:lrem_result} compares the average RMSE of ten runs with different dimensions of the low-rank approximation $d$ and different ratio of the missing element in the rating matrix. Looking at the table in column-wise, it is found that the algorithm works better for the raining data with less missing ratings, which is an obvious result. An interesting result can be found by looking at the table in row-wise; larger dimension results in the larger RMSE when the rating matrix is sparse, while it results in the smaller RMSE when the rating matrix is mostly filled. It is because the algorithm badly overfits to the training data when the number of free parameters are large while the number of the available training data is small. 
 
 
-\begin{table}[h]
+\begin{table}[ht]
  \caption{RMSE with different dimensions $d$ and different ratio of the missing element. The values are the average of ten runs.}
  \label{table:lrem_result}
  \begin{center}
