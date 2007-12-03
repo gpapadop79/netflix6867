@@ -3,6 +3,8 @@
 \usepackage[letterpaper, top=2cm, bottom=1.8cm, inner=1.8cm,
 outer=1.8cm, foot=.25in]{geometry}
 
+\setcounter{tocdepth}{1}
+
 \include{header}
 
 \def\LaTeXe{c}
@@ -14,28 +16,28 @@ outer=1.8cm, foot=.25in]{geometry}
 
 \maketitle
 
-\vspace{-10mm}
+\tableofcontents
 
 \section{Introduction}
+\subsection{Project Overview}
+We implemented and evaluated two approaches toÅ@collaborative filtering; mixture model and low-rank approximation. They are tested on a subset of the NetFlix Prize dataset. This report includes theoretical basis of each approaches and empirical results as well as the complexity analysis and the discussion about the feasibility for large scale problem.
 
-For our project, we implemented and evaluated several approaches to
-collaborative filtering a subset of the NetFlix Challenge dataset.
+\subsection{Dataset}
 
-\paragraph{Definition of the Rating Matrix}
-There are $n_U$ users and $n_M$ movies.  The \term{ratings matrix}
-$\mat{R}$ is a $n_M$-by-$n_U$ matrix whose rows correspond to users
-and columns correspond to movies, such that entry $r_{i,j} \in
-\range{5}$ is the rating given by user $i$ to movie $j$.
 
 The NetFlix dataset is large: it contains 480,189 users, 17,770
-movies, and 100,480,507 ratings. MATLAB's in-memory data management is
-not amenable to datasets of such scale; hence, we \TODO{describe how
-  we got this small fully packed rating matrix}. Our packed matrix
-contains 51 movies and 892 users. When dividing this up into training
-and test data, we ended up with a large number of training and testing
-data.
+movies, and 100,480,507 ratings. This scale of the problem is beyond the scope of the class project, and MATLAB's in-memory data management is also not amenable to datasets of such scale. Hence, we used much smaller data set with 51 movies and 892 users, which is a subset of the full Netflix Prize dataset. Those 51 movies and 892 users are chosen so that the resulting rating matrix is fully packed. We then divide the rating matrix into training and test data. Since we have the fully packed rating matrix, we can arbitrary arrange the \textit{sparsity ratio}\footnote{\textit{Sparsity ratio means the ratio of missing element in the rating matrix. The original Netflix Prize data has 99\% sparsity ratio.}} of the training data to evaluate the dependency of the performance on the sparsity ratio.  
 
-\paragraph{TODO: Perfomance measure: room mean square error (RMSE)}
+In the following context we denote by $\mat{R}$ the rating matrix whose rows correspond to users
+and columns correspond to movies, such that entry $r_{i,j} \in \range{5}$ is the rating given by user $i$ to movie $j$. We also denote by $n_U$ and $n_M$ the number of users and movies.  
+
+\subsection{Performance Measure}
+The performance of each algorithm is measured by root-mean-squre error (RMSE), which is defined as follows;
+\begin{equation}
+RMSE = \left[ \sum_{(i,j) \in I_T} ({\hat r}_{i,j} - r_{i,j})^2 \right]^\frac{1}{2}
+\end{equation}
+where $I_T$ is the set of indices of the ratings included in the test data and ${\hat r}_{i,j}$ is the estimated rating of $i$th user for $j$th movie. 
+
 
 \section{Mixture Model}
 
