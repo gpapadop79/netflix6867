@@ -12,11 +12,11 @@
 
 \section{Linear Regression + EM-like alternate update}
 \subsection{Overview}
-The goal of the algorithm is to find a low-rank approximation of the sparse rating matrix
+The goal of the algorithm is to find a low-rank approximation of the sparse rating matrix 
 \begin{equation}
 R \approx MU
 \end{equation}
-where $M$ is a $n_M$-by-$d$ movie property matrix, $U$ is a
+where $M$ is awhere $M$ is a $n_M$-by-$d$ movie property matrix, $U$ is a
 $d$-by-$n_U$ user property matrix, and $d$ is the dimension of the
 low-rank approximation. Due to the missing entries of $R$, $M$ and $U$
 cannot be obtained from singular value decomposition. Instead, the
@@ -59,7 +59,7 @@ Since the initial value of $M$ is randomly chosen, the result is stochastic. In 
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[scale=0.7]{figure/lrem_typical_plot.eps}
+    \includegraphics[scale=0.6]{figure/lrem_typical_plot.eps}
   \end{center}
   \caption{Typical result when $d = 2$ and (Ratio of missing element)=0.5. The dotted line shows the RMSE when the estimation is simply the average rating of each movie (i.e. zero-order estimation)}
   \label{fig:lrem_typical_plot.eps}
