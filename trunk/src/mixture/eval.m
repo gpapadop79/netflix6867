@@ -1,5 +1,14 @@
 %% TODO WARNING UNTESTED CODE, just checking in
 
+%
+%% dataset initialization
+%
+
+load Netflix_subset.mat
+% rows should be users, cols should be movies
+R = R';
+[R Rtest] = divideData(R, 0.5);
+
 % number of times to repeat EM for each unique configuration
 tries = 3;
 
@@ -15,10 +24,6 @@ for ku = 2:5
   end
 end
 nc = size(configs, 1);
-
-load Netflix_subset.mat
-R = R';
-[R Rtest] = divideData(R, 0.5);
 
 %% run the EM algorithm
 if 0

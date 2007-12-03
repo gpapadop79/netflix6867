@@ -1,41 +1,20 @@
-%function main();
+function [prum pui pmj pumrij] = em(R, ku, km);
 
 %
-%% dataset initialization
+%% initialization
 %
-
-testdataset = 1;
-testuniform = 0;
-
-if testdataset
-  R = [4 5 3; ... % :)
-       2 1 1; ... % :(
-       5 5 4; ... % :)
-       1 1 1];    % :(
-  R = [4 5 1 0; ... % :)
-       2 1 4 3; ... % :(
-       5 5 2 1; ... % :)
-       1 0 3 4];    % :(
-else
-  load Netflix_subset.mat
-  % rows are users, cols are movies
-  R = R';
-end
 
 [nu nm] = size(R);
-
-%
-%% parameter initialization
-%
-
 kr = 5; km = 2; ku = 2;
+
+initident = 0;
 
 % the posteriors initialization doesn't matter, since the E-step runs first
 pumrij = ones(ku,km,kr,nu,nm);         % P(U,M|R,I,J)
 % the priors should be uniformly initialized
 pui    = 1/ku * ones(ku,nu);          % P(U|I)
 pmj    = 1/km * ones(km,nm);          % P(M|J)
-% the likelihood must not be uniformly initialized; we initialize it randomly
+% the likelihood must not be identically initialized; we initialize it randomly
 % (but the random distributions must be normalized)
 prum   = rand(kr,ku,km);             % P(R|U,M)
 for u = ku
@@ -43,9 +22,8 @@ for u = ku
     prum(:,u,m) = prum(:,u,m) / sum(prum(:,u,m));
   end
 end
-if testuniform, prum = 1/kr * ones(kr,ku,km); end;
+if initident, prum = 1/kr * ones(kr,ku,km); end;
 
-% try different numbers of classes
 for K = 1:100 % TODO when to stop?
 
   fprintf('iteration %d\n', K);
@@ -132,31 +110,6 @@ for K = 1:100 % TODO when to stop?
     break;
   end;
 
-end
-
-if testdataset
-  % test the first unknown
-  i = 1; j = 4;
-  for r = 1:kr
-    prob = 0;
-    for u = 1:ku
-      for m = 1:km
-        prob = prob + prum(r,u,m) * pui(u,i) * pmj(m,j);
-      end
-    end
-    fprintf('P{ R(%d,%d) = %d } = %f\n', i, j, r, prob);
-  end
-  % test the second unknown
-  i = 4; j = 2;
-  for r = 1:kr
-    prob = 0;
-    for u = 1:ku
-      for m = 1:km
-        prob = prob + prum(r,u,m) * pui(u,i) * pmj(m,j);
-      end
-    end
-    fprintf('P{ R(%d,%d) = %d } = %f\n', i, j, r, prob);
-  end
 end
 
 % DONE added random initialization - this seemed to do the trick
