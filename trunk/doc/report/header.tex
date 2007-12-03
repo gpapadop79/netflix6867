@@ -1,19 +1,92 @@
 \usepackage{amsmath, amssymb}
 \usepackage{comment}
 \usepackage{graphicx}
-% \usepackage{proba}
+%\usepackage[T1]{fontenc}
+%\usepackage{ae, aecompl}
+\usepackage[numbers]{natbib}
 
-\newcommand{\E}    [2]{{ \textrm{E} \left[ #1 \mid #2 \right] }}
-\newcommand{\LL}   [2]{{ L \left( #1 \,\middle|\, #2 \right) }}
-\newcommand{\LLL}  [2]{{ l \left( #1 \,\middle|\, #2 \right) }}
-\newcommand{\N}    [1]{{ \# \left( \textrm{ #1 } \right) }}
-\newcommand{\PO}   [1]{{ \Pr \left( #1 \right) }}
-\newcommand{\PP}   [2]{{ \PO{ #1 \,\middle|\, #2 } }}
-\newcommand{\card} [1]{{ \left| #1 \right| }}
-\newcommand{\mat}  [1]{{ \bf #1 }}
-\newcommand{\norm} [1]{{ \left\| #1 \right\| }}
-\newcommand{\range}[1]{{ \left\{ 1, \dots, #1 \right\} }}
-\newcommand{\vect} [1]{{ \mbox{\boldmath $#1$} }}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% math
 
-\providecommand{\OO}[1]{\operatorname{O}\bigl(#1\bigr)} %O-notation
+%
+% General
+%
 
+\DeclareMathOperator{\argmin}{arg\,min}
+\DeclareMathOperator{\argmax}{arg\,max}
+
+%
+% Sets
+%
+
+\newcommand{\card} [1]{{\lvert #1 \rvert}}
+\newcommand{\range}[1]{{\left\{ 1, \dots, #1 \right\}}}
+
+%
+% Linear algebra
+%
+
+\newcommand{\mat}  [1]{{\bf #1}}
+\newcommand{\norm} [1]{{\lVert #1 \rVert}}
+\newcommand{\vect} [1]{{\mbox{\boldmath $#1$}}}
+
+%
+% Probability. The CTAN `proba` package doesn't seem to be that good.
+% TODO ensuremath does not seem to be a good idea.
+%
+
+\newcommand{\E}    [2]{{\textrm{E} \left[ #1 \mid #2 \right]}}
+\newcommand{\LL}   [2]{{\ensuremath{ L \left( #1 \,\middle|\, #2 \right) }}}
+\newcommand{\LLL}  [2]{{\ensuremath{ l \left( #1 \,\middle|\, #2 \right) }}}
+\newcommand{\N}    [1]{{\ensuremath{ \# \left( \textrm{ #1 } \right) }}}
+\newcommand{\PO}   [1]{{\Pr \left( #1 \right)}}
+\newcommand{\PP}   [2]{{\PO{ #1 \,\middle|\, #2 }}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Theoretical computer science
+
+%
+% Computational complexity
+%
+
+\DeclareMathOperator{\bigO}{O}
+\providecommand{\OO}[1]{\bigO\bigl(#1\bigr)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% General text
+
+% \emph toggles italics; \textit sets italics; \em is deprecated
+\newcommand{\term} [1]{{\emph{#1\/}}} 
+
+% We don't need to do append a ~ or \ because TeX already handles .,
+% correctly. TODO figure out if italics are correct here
+\newcommand{\foreign}[1]{{\textit{#1}}}
+\newcommand{\ea}      {{\foreign{et~al.}}}
+\newcommand{\eg}      {{\foreign{e.g.}}}
+\newcommand{\ie}      {{\foreign{i.e.}}}
+\newcommand{\TODO} [1]{{\textbf{TODO}: \textit{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Remarks. Collected from the pervasive but untraceable `remarks.tex`.
+
+\newif\ifremark
+\long\def\remark#1{
+\ifremark%
+    \begingroup%
+    \dimen0=\columnwidth
+    \advance\dimen0 by -0.25in%
+    \setbox0=\hbox{\parbox[b]{\dimen0}{\protect\em\textcolor{red}{#1}}}
+    \dimen1=\ht0\advance\dimen1 by 2pt%
+    \dimen2=\dp0\advance\dimen2 by 2pt%
+    \vskip 0.25pt%
+    \hbox to \columnwidth{%
+        \vrule height\dimen1 width 3pt depth\dimen2%
+        \hss\copy0\hss%
+        \vrule height\dimen1 width 3pt depth\dimen2%
+    }%
+    \endgroup%
+\fi}
+
+\newcommand{\remarkname}[2] {
+    \remark{{\bf #1}:#2}
+}
