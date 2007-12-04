@@ -1,14 +1,14 @@
-\\ensuremath{\\backslash}
-\\
-
 \\_
 _
 
-\\\^{}
+\\\^\{\}
 ^
 
-\\{
+\\\{
 {
 
-\\}
+\\\}
 }
+
+\\ensuremath\{\\backslash\}
+\\
