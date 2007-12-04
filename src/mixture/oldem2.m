@@ -1,48 +1,31 @@
-function [prum pui pmj like pumrij] = em(R, ku, km, maxiter, tol);
-% [prum pui pmj pumrij like] = em(R, ku, km, maxiter, tol)
-%
-% EM algorithm for flexible mixture model (collab filt) MLE
-%
-% Inputs:
-%   R: the dataset
-%   ku: the number of user types
-%   km: the number of movie types
-%   maxiter: cap on the number of iterations (default 30)
-%   tol: stop iterating once |L'-L|/L<tol (default 1e-4)
-%
-% Outputs:
-%   prum:   P(R|U,M)
-%   pui:    P(U|I) (user type prior)
-%   pmj:    P(M|J) (movie type prior)
-%   like:   P(R) (likelihood)
-%   pumrij: P(U,M|R,I,J) (posterior)
+function [prum pui pmj like pumrij] = oldem2(R, ku, km);
 
 %
 %% initialization
 %
 
-if nargin < 4, maxiter = 30; end;
-if nargin < 5, tol = 1e-4; end; % termination delta ratio tolerance
 [nu nm] = size(R);
-kr = 5;
+kr = 5; km = 2; ku = 2;
 like = -inf;
+initident = 0;
+maxiter = 30;
+tol = 1e-4;
 showiters = false;
-initident = false;
 
 % the posteriors initialization doesn't matter, since the E-step runs first
-pumrij = ones(ku,km,nu,nm);           % P(U,M|R,I,J)
+pumrij = ones(ku,km,nu,nm);        % P(U,M|R,I,J)
 % the priors should be uniformly initialized
 pui    = 1/ku * ones(ku,nu);          % P(U|I)
 pmj    = 1/km * ones(km,nm);          % P(M|J)
 % the likelihood must not be identically initialized; we initialize it randomly
 % (but the random distributions must be normalized)
-prum   = rand(ku,km,kr);              % P(R|U,M) XXX NOTE prum(u,m,r)
+prum   = rand(kr,ku,km);              % P(R|U,M)
 for u = ku
   for m = km
-    prum(u,m,:) = prum(u,m,:) / sum(prum(u,m,:));
+    prum(:,u,m) = prum(:,u,m) / sum(prum(:,u,m));
   end
 end
-if initident, prum = 1/kr * ones(ku,km,kr); end;
+if initident, prum = 1/kr * ones(kr,ku,km); end;
 
 for K = 1:maxiter % TODO when to stop?
 
@@ -52,13 +35,20 @@ for K = 1:maxiter % TODO when to stop?
   %% e-step
   %
 
+  % TODO use only the i,j that are present
+  % TODO use only R(i,j)
+
   %disp pumrij;
   for i = 1:nu
     for j = 1:nm
-      if R(i,j) > 0
-        pumrij(:,:,i,j) = prum(:,:,R(i,j)) .* (pui(:,i) * pmj(:,j)');
+        if R(i,j) > 0
+        for m = 1:km
+          for u = 1:ku
+            pumrij(u,m,i,j) = prum(R(i,j),u,m) * pui(u,i) * pmj(m,j);
+          end
+        end
         pumrij(:,:,i,j) = pumrij(:,:,i,j) / sum(sum(pumrij(:,:,i,j)));
-      end
+        end
     end
   end
 
@@ -71,36 +61,52 @@ for K = 1:maxiter % TODO when to stop?
 
   %disp pui
   lastpui = pui;
-  pui = reshape(sum(sum(pumrij,4),2),ku,nu);
-  pui = pui./repmat(sum(pui,1),ku,1);
-  
+  pui = zeros(ku,nu);
+  for i = 1:nu
+    for u = 1:ku
+      for j = 1:nm
+        if R(i,j) > 0
+          pui(u,i) = pui(u,i) + sum(pumrij(u,:,i,j)); % + P(U|R,I,J)
+        end
+      end
+      pui(u,i) = pui(u,i) / numel(find(R(i,:) > 0));
+    end
+  end
+
   assert(0 == numel(find(pui < 0 | 1 < pui)));
 
   %disp pmj
   lastpmj = pmj;
-  pmj = reshape(sum(sum(pumrij,3),1),km,nm);
-  pmj = pmj./repmat(sum(pmj,1),km,1);
+  pmj = zeros(km,nm);
+  for j = 1:nm
+    for m = 1:km
+      for i = 1:nu
+        if R(i,j) > 0
+          pmj(m,j) = pmj(m,j) + sum(pumrij(:,m,i,j)); % + P(M|R,I,J)
+        end
+      end
+      pmj(m,j) = pmj(m,j) / numel(find(R(:,j) > 0));
+    end
+  end
 
   assert(0 == numel(find(pmj < 0 | 1 < pmj)));
-  
+
   %disp prum;
   lastprum = prum;
-  prum = zeros(ku,km,kr);
+  prum = zeros(kr,ku,km);
   for u = 1:ku
     for m = 1:km
       for i = 1:nu
         for j = 1:nm
           if R(i,j) > 0
-            prum(u,m,R(i,j)) = prum(u,m,R(i,j)) + pumrij(u,m,i,j);
+            prum(R(i,j),u,m) = prum(R(i,j),u,m) + pumrij(u,m,i,j);
           end
         end
       end
-      prum(u,m,:) = prum(u,m,:) / sum(prum(u,m,:));
+      prum(:,u,m) = prum(:,u,m) / sum(prum(:,u,m));
     end
   end
 
-  
-  
   assert(0 == numel(find(prum < 0 | 1 < prum)));
 
   %
@@ -115,38 +121,22 @@ for K = 1:maxiter % TODO when to stop?
         like(i,j) = 0;
         for u = 1:ku
           for m = 1:km
-            like(i,j) = like(i,j) + prum(u,m,R(i,j)) * pui(u,i) * pmj(m,j);
+            like(i,j) = like(i,j) + prum(R(i,j),u,m) * pui(u,i) * pmj(m,j);
           end
         end
       end
     end
   end
   like = sum(log(reshape(like,numel(like),1)));
-  if showiters, fprintf('%d\n', like); end;
   assert(not(0 < like || like < lastlike));
 
   if abs((like-lastlike)/lastlike) < tol
     break
   end
 
-  %%%%if numel(find(pui == lastpui)) > 0 && ...
-  %%%%   numel(find(pmj == lastpmj)) > 0 && ...
-  %%%%   numel(find(prum == lastprum)) > 0
-  %%%%  break;
-  %%%%end;
 end
 
 K
-
-% newprum = zeros(kr,ku,km); % putting the r,u,m in the right spots
-% for u = 1:ku
-%   for m = 1:km
-%     newprum(:,u,m) = prum(u,m,:);
-%   end
-% end
-% prum = newprum;
-
-prum = shiftdim(prum, 2);
 
 % DONE added random initialization - this seemed to do the trick
 % DONE vectorized some parts of the code
