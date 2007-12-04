@@ -1,4 +1,4 @@
-function err = rmse(R, prum, pui, pmj);
+function [err err_mean Rhat Rhatmean] = rmse(R, prum, pui, pmj)
 
 kr = size(prum,1); ku = size(pui,1); km = size(pmj,1);
 [nu nm] = size(R);
@@ -21,9 +21,20 @@ end
 [l Rhat] = max(like,[],1);
 Rhat = reshape(Rhat, nu, nm);
 
+
+%% use mean as the estimation
+Rhatmean = zeros(nu,nm);
+for i=1:5
+    Rhatmean = Rhatmean + i * reshape(like(i,:,:), nu, nm);
+end
+
+
 % find RMSE between our estimates and the true ratings (ignoring the non-test
 % cells)
 errs = (Rhat - R).^2 .* (R > 0);
 err = sqrt(sum(reshape(errs, numel(errs), 1)) / numel(find(R>0)));
+
+errs_mean = (Rhatmean - R).^2 .* (R > 0);
+err_mean = sqrt(sum(reshape(errs_mean, numel(errs_mean), 1)) / numel(find(R>0)));
 
 % vim:et:sw=2:ts=2
