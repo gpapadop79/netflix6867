@@ -2,18 +2,17 @@ function err = rmse(R, prum, pui, pmj);
 
 kr = size(prum,1); ku = size(pui,1); km = size(pmj,1);
 [nu nm] = size(R);
-%%%% lprum = log(prum); lpui = log(pui); lpmj = log(pmj);
 like = zeros(kr,nu,nm);
 
 % estimate the most likely ratings for each of the test (i,j)
 for i = 1:nu
   for j = 1:nm
     if R(i,j) > 0
-      % find likelihood of each rating
-      for r = 1:kr
-        marginal = reshape(prum(r,:,:),ku,km) .* (pui(:,i) * pmj(:,j)');
-        like(r,i,j) = like(r,i,j) + sum(reshape(marginal, ku*km, 1));
-      end
+      % find likelihood of each rating for each user-type/movie-type config.
+      % marginal = P(R,U,M|I,J)
+      marginal = prum .* shiftdim(repmat(pui(:,i) * pmj(:,j)', [1 1 5]), 2);
+      % marginalize over the user and movie types
+      like(:,i,j) = sum(sum(marginal, 3), 2);
     end
   end
 end
