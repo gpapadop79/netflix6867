@@ -136,6 +136,7 @@ for K = 1:maxiter % TODO when to stop?
 
 end
 
+K
 % DONE added random initialization - this seemed to do the trick
 % DONE vectorized some parts of the code
 % DONE fixed stupid indexing bug (n,m)

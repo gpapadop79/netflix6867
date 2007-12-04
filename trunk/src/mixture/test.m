@@ -5,13 +5,13 @@ R = [4 5 3; ... % :)
      2 1 1; ... % :(
      5 5 4; ... % :)
      1 1 1];    % :(
-R = [4 5 1 0; ... % :)
-     2 1 4 3; ... % :(
-     5 5 2 1; ... % :)
-     1 0 3 4];    % :(
+R = [5 5 5 0; ... % :)
+     2 1 4 5; ... % :(
+     5 1 2 5; ... % :)
+     1 0 1 5];    % :(
 
 % run EM
-[prum pui pmj like pumrij] = oldem(R, ku, km);
+[prum pui pmj like pumrij] = oldem2(R, ku, km);
 
 % test the first unknown
 i = 1; j = 4;

@@ -1,5 +1,12 @@
 clear;
-load ../dataset/Netflix_subset.mat;
+%load ../dataset/Netflix_subset.mat;
+
+R = [5 5 5 0; ... % :)
+     2 1 4 5; ... % :(
+     5 1 2 5; ... % :)
+     1 0 1 5];    % :(
+ 
+ 
 
 ku = 2;
 km = 2;
@@ -39,7 +46,6 @@ pui_old    = 1/ku * ones(ku,nu);          % P(U|I)
 pmj_old    = 1/km * ones(km,nm);          % P(M|J)
 % the likelihood must not be identically initialized; we initialize it randomly
 % (but the random distributions must be normalized)
-prum_old   = zeros(kr,ku,km);              % P(R|U,M)
 for r = 1:5
     for u = 1:ku
         for m=1:km
@@ -90,15 +96,16 @@ for K = 1:maxiter % TODO when to stop?
 
 %% Compare E-step result 
 
+tol = 1e-6;
+
 Ind = find(pumrij_old~=pumrij);
 
-if(isempty(Ind))
+if((approx_eq(pumrij, pumrij_old, tol)>0))
     disp('E-step: results are identical.');
 else
     disp('E-step: results are different.');
-end    
+end
 
-input('press any key to proceed');
     
 %% New M step
 
@@ -173,9 +180,53 @@ else
     disp('M: pmj is different');
 end
 
-input('press any key to proceed');
 
-%%  
+%%  new M
+
+ 
+  %disp prum;
+  lastprum = prum;
+  prum = zeros(ku,km,kr);
+  for u = 1:ku
+    for m = 1:km
+      for i = 1:nu
+        for j = 1:nm
+          if R(i,j) > 0
+            prum(u,m,R(i,j)) = prum(u,m,R(i,j)) + pumrij(u,m,i,j);
+          end
+        end
+      end
+      prum(u,m,:) = prum(u,m,:) / sum(prum(u,m,:));
+    end
+  end
+
+%% old M
+
+  lastprum = prum_old;
+  prum_old = zeros(kr,ku,km);
+  for u = 1:ku
+    for m = 1:km
+      for i = 1:nu
+        for j = 1:nm
+          if R(i,j) > 0
+            prum_old(R(i,j),u,m) = prum_old(R(i,j),u,m) + pumrij_old(u,m,i,j);
+          end
+        end
+      end
+      prum_old(:,u,m) = prum_old(:,u,m) / sum(prum_old(:,u,m));
+    end
+  end
+  
+%% Compare  
+
+if(min(min(approx_eq(shiftdim(prum,2), prum_old, tol)))>0);
+    disp('M: prum is identical');
+else
+    disp('M: prum is different');
+end
+
+%%
+
   
   %
   % calculate likelihood
@@ -213,6 +264,10 @@ input('press any key to proceed');
   %%%%   numel(find(prum == lastprum)) > 0
   %%%%  break;
   %%%%end;
+  
+  input('press any key to proceed');
+
+  
 end
 
 newprum = zeros(kr,ku,km); % putting the r,u,m in the right spots
