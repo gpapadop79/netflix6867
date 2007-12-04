@@ -1,7 +1,7 @@
 \documentclass{article}
 
-\usepackage[letterpaper, top=2cm, bottom=1.8cm, inner=1.8cm,
-outer=1.8cm, foot=.25in]{geometry}
+\usepackage[letterpaper, top=2cm, bottom=1cm, inner=1.8cm,
+outer=1.8cm, foot=1cm]{geometry}
 
 \setcounter{tocdepth}{1}
 
@@ -9,7 +9,7 @@ outer=1.8cm, foot=.25in]{geometry}
 
 \def\LaTeXe{c}
 
-\title{Collaborative Filtering for the NetFlix Challenge}
+\title{Collaborative Filtering for the NetFlix Prize}
 \author{Masahiro Ono and Yang Zhang}
 
 \begin{document}
@@ -19,25 +19,49 @@ outer=1.8cm, foot=.25in]{geometry}
 \tableofcontents
 
 \section{Introduction}
+
 \subsection{Project Overview}
-We implemented and evaluated two approaches to collaborative filtering; mixture model and low-rank approximation. They are tested on a subset of the NetFlix Prize dataset. This report includes theoretical basis of each approaches and empirical results as well as the complexity analysis and the discussion about the feasibility for large scale problem.
+
+We implemented and evaluated two approaches to collaborative
+filtering: mixture model MLE and low-rank approximation. We analyze
+these approaches and evaluate them on a subset of the NetFlix Prize
+dataset. This report includes the theoretical basis of each approach
+and the empirical results of our experimental evaluation as well as
+complexity analysis and discussion of their feasibility for
+larger-scale problems.
 
 \subsection{Dataset}
 
-
 The NetFlix dataset is large: it contains 480,189 users, 17,770
-movies, and 100,480,507 ratings. This scale of the problem is beyond the scope of the class project, and MATLAB's in-memory data management is also not amenable to datasets of such scale. Hence, we used much smaller data set with 51 movies and 892 users, which is a subset of the full Netflix Prize dataset. Those 51 movies and 892 users are chosen so that the resulting rating matrix is fully packed. We then divide the rating matrix into training and test data. Since we have the fully packed rating matrix, we can arbitrary arrange the \textit{sparsity ratio}\footnote{\textit{Sparsity ratio means the ratio of missing element in the rating matrix. The original Netflix Prize data has 99\% sparsity ratio.}} of the training data to evaluate the dependency of the performance on the sparsity ratio.  
+movies, and 100,480,507 ratings. MATLAB's in-memory data management is
+not amenable to datasets of such scale, and working with such a large
+dataset incurs implementation challenges that are beyond the scope of
+our class proejct. Hence, we use a much smaller subset of the full
+Netflix Prize dataset consisting of 51 movies and 892 users, chosen so
+that the resulting rating matrix is fully packed. We then divide the
+rating matrix into training and test data. Since we have the fully
+packed rating matrix, we can arbitrary specify the \term{sparsity
+  ratio}\footnote{\textit{The sparsity ratio is the ratio of missing
+    ratings to the size of the matrix. The original Netflix Prize data
+    has a sparsity ratio of 99\%.}} of the training data to evaluate
+the dependency of the performance on the sparsity ratio.
 
-In the following context we denote by $\mat{R}$ the rating matrix whose rows correspond to users
-and columns correspond to movies, such that entry $r_{i,j} \in \range{5}$ is the rating given by user $i$ to movie $j$. We also denote by $n_U$ and $n_M$ the number of users and movies.  
+In this report, we denote by $\mat{R}$ the rating matrix whose rows
+correspond to users and columns correspond to movies, such that entry
+$r_{i,j} \in \range{5}$ is the rating given by user $i$ to movie
+$j$. We also denote by $n_U$ and $n_M$ the number of users and movies.
 
 \subsection{Performance Measure}
-The performance of each algorithm is measured by root-mean-squre error (RMSE), which is defined as follows;
+The performance of each algorithm is measured by root-mean-squre
+error,
 \begin{equation}
-RMSE = \left[ \sum_{(i,j) \in I_T} ({\hat r}_{i,j} - r_{i,j})^2 \right]^\frac{1}{2}
+  \textrm{RMSE} = \left[
+    \sum_{(i,j) \in I_T} ({\hat r}_{i,j} - r_{i,j})^2
+  \right]^\frac{1}{2}
 \end{equation}
-where $I_T$ is the set of indices of the ratings included in the test data and ${\hat r}_{i,j}$ is the estimated rating of $i$th user for $j$th movie. 
-
+where $I_T$ is the set of indices of the ratings included in the test
+data and ${\hat r}_{i,j}$ is the estimated rating of $i$th user for
+$j$th movie.
 
 \section{Mixture Model}
 
@@ -52,8 +76,10 @@ For this part of our project, we rigorously derived the E-M algorithm,
 implement the algorithm in MATLAB, and analyzed its results. In the
 following sections, we describe and justify the model, then derive the
 E-M algorithm and analyze its complexity. Next, we describe our
-implementation, and finally we evaluate its performance by using
-\TODO{what should our performance metric be?}
+implementation, and finally we evaluate its RMSE
+performance. Throughout these sections, we will identify key
+variables, but also provide complete definitions in the appendix for
+the reader's reference.
 
 \subsection{Overview}
 
@@ -80,12 +106,12 @@ We see that there are three sets of parameters, and our approach is to
 use an E-M algorithm to perform maximum likelihood estimation of these
 parameters.
 
-Each cell has its own user and movie type. What does all this mean?
-Intuitively, we can think of each cell as the result of an \term{act}
-of rating. Hence, every time a user rates a movie, we are randomly
-sampling from among the user's multiple personalities (\eg, the
-romantic in the user was rating this movie). We are also sampling from
-among the movie's multiple aspects (the user saw this movie as a
+Each cell has its own user type and movie type. What does all this
+mean?  Intuitively, we can think of each cell as the result of an
+\term{act} of rating. Hence, every time a user rates a movie, we are
+randomly sampling from among the user's multiple personalities (\eg,
+the romantic in the user was rating this movie). We are also sampling
+from among the movie's multiple aspects (the user saw this movie as a
 horror movie). We will loosely use the term ``rating'' to mean either
 the act of the rating or the rating value itself; hopefully the
 meaning remains clear from the context.
@@ -118,13 +144,13 @@ we have ``complete data''---that is, for each of the (observed)
 ratings $i,j$, we know precisely which user type $u$ and movie type
 $m$ the rating belongs to. With this information, we can directly and
 analytically find the parameters that maximize the likelihood of the
-data. We can equivalently optimize the log-likelihood: $\arg
-\max_\theta \LL{D}{\theta} = \arg \max_\theta \log \LL{D}{\theta}$.
+data. We can equivalently optimize the log-likelihood: $\argmax_\theta
+\LL{D}{\theta} = \argmax_\theta \log \LL{D}{\theta}$.
 \begin{align}
   \LLL{D}{\theta} =& \log \LL{D}{\theta} \\
   =& \sum_{i,j \in I} \left[
     \begin{aligned}
-      & \log \PP{R_{i,j} = r_{i,j}}{U_{i,j} = u_{i,J}, M_{i,j} = m_{i,j},
+      & \log \PP{R_{i,j} = r_{i,j}}{U_{i,j} = u_{i,j}, M_{i,j} = m_{i,j},
         \theta^R} + \\
       & \log \PP{U_{i,j} = u_{i,j}}{\theta^U_i} +  \log \PP{M_{i,j} = m_{i,j}}{\theta^M_j}
     \end{aligned}
@@ -214,23 +240,22 @@ equations.
 
 \subsubsection{E-step}
 
-For all $i \in \range{n_M}, j \in \range{n_M}$, we calculate the
-posterior.
+For all $(i,j) \in I$, we calculate the posterior.
 \begin{align}
 & \PP{ U_{i,j} = u, M_{i,j} = m }{ R = \mat{R}, \theta } \\
 =& \PP{ U_{i,j} = u, M_{i,j} = m }{ R_{i,j} = r_{i,j}, \theta^U_i,
-  \theta^M_j, \theta^R }
+  \theta^M_j, \theta^R_{u,m} }
 &&
 \text{independencies can be seen in graphical model} \\
 =& \frac{1}{Z} \left(
 \begin{aligned}
-& \PP{R_{i,j} = r_{i,j} }{U_{i,j} = u, M_{i,j} = m, \theta^R} \\
+& \PP{R_{i,j} = r_{i,j} }{U_{i,j} = u, M_{i,j} = m, \theta^R_{u,m}} \\
 & \PP{U_{i,j} = u, M_{i,j} = m}{\theta^U_i, \theta^M_j}
 \end{aligned} \right)
 && \text{by Bayes' rule; $Z$ is a normalizer} \\
 =& \frac{1}{Z} \left(
 \begin{aligned}
-& \PP{R_{i,j} = r_{i,j} }{U_{i,j} = u, M_{i,j} = m, \theta^R} \\
+& \PP{R_{i,j} = r_{i,j} }{U_{i,j} = u, M_{i,j} = m, \theta^R_{u,m}} \\
 & \PP{U_{i,j} = u }{\theta^U_i}
   \PP{M_{i,j} = m }{\theta^M_j}
 \end{aligned} \right)
@@ -305,12 +330,19 @@ Finally, for all $u \in \range{k_U}, m \in \range{k_M}$,
 
 \subsection{Complexity Analysis}
 
+\TODO{fix this; our algo actually does not build complete tables, only
+what is necessary given the data; $r_{i,j}$, not all $r$}
+
 Here is a break-down of various dimensions of our model and
 algorithm. Each parameter involves ``weighted sums'' over some number
 of components of the joint posterior over $U,M$ given the data $R$;
-the third column is the number of terms (the cost of the
-summations). The fourth column is the total complexity, the product of
-the second and third columns.
+the third column is the order of the number of terms in these
+summations (the cost of the summations). The fourth column is the
+total complexity, the product of the second and third columns. Note
+that in all of the following, we are providing a loose upper bound;
+the expense of this algorithm is more tightly bounded by the number of
+observed ratings in the matrix $I$, rather than the matrix's
+dimensions $n_U$ and $n_M$.
 \begin{center}
   \begin{tabular}{c|c|c|c}
     component & no.~parameters &
@@ -334,18 +366,27 @@ Eq. \ref{eq:pumrij}. This table is of size $k_U \cdot k_M \cdot k_R
 \TODO{what to say here?} The number of iterations is less
 straightforward to calculate.
 
-\subsection{Performance Evaluation}
+\subsection{Experimental Evaluation}
 
-We implemented the E-M algorithm in MATLAB. The MATLAB execution
-performance was poor when run on even our smaller dataset, but it
-allowed us to rapidly prototype a working implementation.
+We implemented the E-M algorithm in MATLAB. The MATLAB execution speed
+was poor when run on even our smaller dataset, but it allowed us to
+rapidly prototype a working implementation.
 
 We partitioned the cells of $\mat R$ into a training set matrix and a
-test set matrix. We ran the EM algorithm on the training set and
-calculated the \TODO{likelihood?} of these parameters generating the
-test set.
-
-
+test set matrix using a sparsity ratio of \TODO{sparsity ratio}. The
+EM algorithm was repeated \TODO{iterations} times, and we took the
+result parameters that yielded the largest likelihood. The reason for
+this is that EM does not guarantee it will find the global maximum;
+where it ends up depends on how the parameters were initialized.  The
+general way to deal with this is to randomly initialize the likelihood
+parameters, so we randomly initialize $\theta^R$. Note that no two
+components therein must be equal, otherwise they would have the exact
+same likelihood of generating any of the points (\ie, $\forall
+u,m,r,r', \, \theta^R_{u,m}(r) \ne \theta^R_{u,m}(r')$). $\theta^U$
+and $\theta^M$ \Emph{are} uniformly initialized; we are essentially
+starting with an ``unbiased'' prior (from a Bayesian perspective, we
+are doing the same thing as finding the maximum \foreign{a posteriori}
+parameters assuming a uniform prior).
 
 In choosing the number of user types and movie types, an approach
 would be to try some different values and see how well they optimize
@@ -353,8 +394,8 @@ some metric, settling with the value that best optimizes this
 metric. \TODO{really need to check the following!} However, if we
 simply let the metric be the likelihood, then we can simply blow up
 the number of parameters: have as many user types as there are users,
-and as many movie types as  there and number of movie types will equal to the
-number of cell types. , and then decide to .
+and as many movie types as there and number of movie types will equal
+to the number of cell types.
 
 One common and easy-to-use metric is the \term{Bayesian information
   criterion} (BIC), also known as the \term{Schwarz information
@@ -386,7 +427,10 @@ In our model, we have
   \right] \\
 \end{align}
 
-TODO This turns out to work well.
+\TODO{RESULTS}
+
+Finally, we computed the RMSE. These results will be discussed in
+section \TODO{reference the comparison section}
 
 
 
@@ -397,6 +441,7 @@ TODO This turns out to work well.
 \section{Appendix}
 
 \subsection{Mixture Models}
+\label{sec:appendix-mixture}
 
 Here are the variables we're using for the mixture models:
 
@@ -420,7 +465,9 @@ Here are the variables we're using for the mixture models:
   \item $n_M$: number of movies
   \item $k_U$: number of user types
   \item $k_M$: number of movie types
-  \item $I$: the set of indexes $i,j$ of observed ratings
+  \item $I$: the set of indices $i,j$ of the ratings in the training
+    set
+  \item $I_T$: the set of indices $i,j$ of the ratings in the test set
   \end{itemize}
 \item Indexes. This allows us to omit ranges in sums and quantifiers.
   \begin{itemize}
