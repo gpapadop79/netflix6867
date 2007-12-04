@@ -1,4 +1,4 @@
-function [prum pui pmj pumrij] = em(R, ku, km);
+function [prum pui pmj like pumrij] = em(R, ku, km);
 
 %
 %% initialization
@@ -6,8 +6,11 @@ function [prum pui pmj pumrij] = em(R, ku, km);
 
 [nu nm] = size(R);
 kr = 5; km = 2; ku = 2;
-
+like = -inf;
 initident = 0;
+maxiter = 30;
+tol = 1e-4;
+showiters = false;
 
 % the posteriors initialization doesn't matter, since the E-step runs first
 pumrij = ones(ku,km,kr,nu,nm);        % P(U,M|R,I,J)
@@ -24,9 +27,9 @@ for u = ku
 end
 if initident, prum = 1/kr * ones(kr,ku,km); end;
 
-for K = 1:100 % TODO when to stop?
+for K = 1:maxiter % TODO when to stop?
 
-  fprintf('iteration %d\n', K);
+  if showiters, fprintf('iteration %d\n', K); end;
 
   %
   %% e-step
@@ -106,11 +109,30 @@ for K = 1:100 % TODO when to stop?
 
   assert(0 == numel(find(prum < 0 | 1 < prum)));
 
-  if numel(find(pui == lastpui)) > 0 && ...
-     numel(find(pmj == lastpmj)) > 0 && ...
-     numel(find(prum == lastprum)) > 0
-    break;
-  end;
+  %
+  % calculate likelihood
+  %
+
+  lastlike = like;
+  like = ones(nu,nm);
+  for i = 1:nu
+    for j = 1:nm
+      if R(i,j) > 0
+        like(i,j) = 0;
+        for u = 1:ku
+          for m = 1:km
+            like(i,j) = like(i,j) + prum(R(i,j),u,m) * pui(u,i) * pmj(m,j);
+          end
+        end
+      end
+    end
+  end
+  like = sum(log(reshape(like,numel(like),1)));
+  assert(not(0 < like || like < lastlike));
+
+  if abs((like-lastlike)/lastlike) < tol
+    break
+  end
 
 end
 
