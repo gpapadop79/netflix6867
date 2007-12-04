@@ -11,7 +11,7 @@ R = [4 5 1 0; ... % :)
      1 0 3 4];    % :(
 
 % run EM
-[prum pui pmj] = em(R, ku, km);
+[prum pui pmj like pumrij] = em(R, ku, km);
 
 % test the first unknown
 i = 1; j = 4;
@@ -35,5 +35,7 @@ for r = 1:kr
   end
   fprintf('P{ R(%d,%d) = %d } = %f\n', i, j, r, prob);
 end
+
+fprintf('like = %f\n', like);
 
 % vim:et:sw=2:ts=2
