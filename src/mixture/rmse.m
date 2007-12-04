@@ -11,18 +11,20 @@ for i = 1:nu
     if R(i,j) > 0
       % find likelihood of each rating
       for r = 1:kr
-        like(r,i,j) = like(r,i,j) + sum(sum(prum(r,:,:) .* pui(:,i) * pmj(:,j)'));
+        marginal = reshape(prum(r,:,:),ku,km) .* (pui(:,i) * pmj(:,j)');
+        like(r,i,j) = like(r,i,j) + sum(reshape(marginal, ku*km, 1));
       end
     end
   end
 end
 
 % which r's are most likely? those are our estimates
-[l r] = max(like,[],1);
+[l Rhat] = max(like,[],1);
+Rhat = reshape(Rhat, nu, nm);
 
 % find RMSE between our estimates and the true ratings (ignoring the non-test
 % cells)
-errs = (r - R).^2 .* (R > 0);
-err = sqrt(sum(reshape(errs, numel(errs), 1)) / numel(err));
+errs = (Rhat - R).^2 .* (R > 0);
+err = sqrt(sum(reshape(errs, numel(errs), 1)) / numel(find(R>0)));
 
 % vim:et:sw=2:ts=2

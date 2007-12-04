@@ -64,6 +64,7 @@ if 1
 %%%%      % TODO define `likelihood` function
 %%%%      L(c,t) = likelihood(R, prum, pui, pmj);
 %%%%    end
+    ku = configs(c,1); km = configs(c,2);
 
     % find the best parameter settings for this configuration
     [like t] = max([rs(c,:).like]);

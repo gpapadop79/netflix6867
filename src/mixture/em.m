@@ -63,8 +63,7 @@ for K = 1:maxiter % TODO when to stop?
   end
 
   % TODO make sure probs sum to 1; repeat for other mats
-  %if find(sum(:,:,:,:,:) != 1), err(); end;
-  if find(pumrij < 0 | 1 < pumrij), err(); end;
+  assert(0 == numel(find(pumrij < 0 | 1 < pumrij)));
 
   %
   %% m-step
@@ -75,7 +74,7 @@ for K = 1:maxiter % TODO when to stop?
   pui = reshape(sum(sum(pumrij,4),2),ku,nu);
   pui = pui./repmat(sum(pui,1),ku,1);
   
-  if find(pui < 0 | 1 < pui), err(); end;
+  assert(0 == numel(find(pui < 0 | 1 < pui)));
 
   %disp pmj
   lastpmj = pmj;
