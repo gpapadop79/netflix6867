@@ -50,8 +50,7 @@ for K = 1:100 % TODO when to stop?
   end
 
   % TODO make sure probs sum to 1; repeat for other mats
-  %if find(sum(:,:,:,:,:) != 1), err(); end;
-  if find(pumrij < 0 | 1 < pumrij), err(); end;
+  assert(0 == numel(find(pumrij < 0 | 1 < pumrij)));
 
   %
   %% m-step
@@ -71,7 +70,7 @@ for K = 1:100 % TODO when to stop?
     end
   end
 
-  if find(pui < 0 | 1 < pui), err(); end;
+  assert(0 == numel(find(pui < 0 | 1 < pui)));
 
   %disp pmj
   lastpmj = pmj;
@@ -87,7 +86,7 @@ for K = 1:100 % TODO when to stop?
     end
   end
 
-  if find(pmj < 0 | 1 < pmj), err(); end;
+  assert(0 == numel(find(pmj < 0 | 1 < pmj)));
 
   %disp prum;
   lastprum = prum;
@@ -105,7 +104,7 @@ for K = 1:100 % TODO when to stop?
     end
   end
 
-  if find(prum < 0 | 1 < prum), err(); end;
+  assert(0 == numel(find(prum < 0 | 1 < prum)));
 
   if numel(find(pui == lastpui)) > 0 && ...
      numel(find(pmj == lastpmj)) > 0 && ...
