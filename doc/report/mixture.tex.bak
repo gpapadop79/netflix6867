@@ -1,7 +1,7 @@
 % Graphic for TeX using PGF
 % Title: /home/yang/work/netflix/doc/report/mixture2.dia
 % Creator: Dia v0.96.1
-% CreationDate: Tue Dec  4 17:10:28 2007
+% CreationDate: Tue Dec  4 17:14:11 2007
 % For: yang
 % \usepackage{tikz}
 % The following commands are not supported in PSTricks at present
@@ -155,7 +155,7 @@
 % setfont left to latex
 \definecolor{dialinecolor}{rgb}{0.000000, 0.000000, 0.000000}
 \pgfsetstrokecolor{dialinecolor}
-\node[anchor=west] at (23.200000\du,16.600000\du){\$U\$};
+\node[anchor=west] at (23.000000\du,16.500000\du){\$U\$};
 % setfont left to latex
 \definecolor{dialinecolor}{rgb}{0.000000, 0.000000, 0.000000}
 \pgfsetstrokecolor{dialinecolor}
@@ -163,31 +163,31 @@
 % setfont left to latex
 \definecolor{dialinecolor}{rgb}{0.000000, 0.000000, 0.000000}
 \pgfsetstrokecolor{dialinecolor}
-\node[anchor=west] at (29.200000\du,16.600000\du){\$M\$};
+\node[anchor=west] at (29.000000\du,16.500000\du){\$M\$};
 % setfont left to latex
 \definecolor{dialinecolor}{rgb}{0.000000, 0.000000, 0.000000}
 \pgfsetstrokecolor{dialinecolor}
-\node[anchor=west] at (26.200000\du,19.800000\du){\$R\$};
+\node[anchor=west] at (26.000000\du,19.500000\du){\$R\$};
 % setfont left to latex
 \definecolor{dialinecolor}{rgb}{0.000000, 0.000000, 0.000000}
 \pgfsetstrokecolor{dialinecolor}
-\node[anchor=west] at (20.200000\du,13.600000\du){\$\ensuremath{\backslash}theta\^{}U\$};
+\node[anchor=west] at (20.000000\du,13.500000\du){\$\ensuremath{\backslash}theta\^{}U\$};
 % setfont left to latex
 \definecolor{dialinecolor}{rgb}{0.000000, 0.000000, 0.000000}
 \pgfsetstrokecolor{dialinecolor}
-\node[anchor=west] at (27.332500\du,13.600000\du){\$\ensuremath{\backslash}theta\^{}M\$};
+\node[anchor=west] at (32.000000\du,13.500000\du){\$\ensuremath{\backslash}theta\^{}M\$};
 % setfont left to latex
 \definecolor{dialinecolor}{rgb}{0.000000, 0.000000, 0.000000}
 \pgfsetstrokecolor{dialinecolor}
-\node[anchor=west] at (20.500000\du,20.500000\du){\$\ensuremath{\backslash}theta\^{}R\$};
+\node[anchor=west] at (20.000000\du,20.500000\du){\$\ensuremath{\backslash}theta\^{}R\$};
 % setfont left to latex
 \definecolor{dialinecolor}{rgb}{0.000000, 0.000000, 0.000000}
 \pgfsetstrokecolor{dialinecolor}
-\node[anchor=west] at (19.637500\du,11.500000\du){\$i \ensuremath{\backslash}in \ensuremath{\backslash}range\{n\_U\}\$};
+\node[anchor=west] at (20.000000\du,11.500000\du){\$i \ensuremath{\backslash}in \ensuremath{\backslash}range\{n\_U\}\$};
 % setfont left to latex
 \definecolor{dialinecolor}{rgb}{0.000000, 0.000000, 0.000000}
 \pgfsetstrokecolor{dialinecolor}
-\node[anchor=west] at (25.600000\du,11.500000\du){\$i \ensuremath{\backslash}in \ensuremath{\backslash}range\{n\_M\}\$};
+\node[anchor=west] at (27.000000\du,11.500000\du){\$j \ensuremath{\backslash}in \ensuremath{\backslash}range\{n\_M\}\$};
 \pgfsetlinewidth{0.010000\du}
 \pgfsetdash{}{0pt}
 \pgfsetdash{}{0pt}
