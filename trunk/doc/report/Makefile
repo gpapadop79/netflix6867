@@ -4,7 +4,10 @@ SRCS    = $(wildcard *.tex *.bib)
 FLAGS   = -m bibtex -Wrefs -Wmisc
 # BIBS    = $(wildcard *.bib)
 
-all: clean ps
+all: clean mixture.tex ps
+
+mixture.tex: mixture.tex.bak
+	../tools/FixDia ../tools/rules.txt < mixture.tex.bak > mixture.tex
 
 ps:
 	rubber --ps $(FLAGS) $(TARGET)
