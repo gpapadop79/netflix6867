@@ -12,8 +12,8 @@
 % General
 %
 
-\DeclareMathOperator{\argmin}{arg\,min}
-\DeclareMathOperator{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
 
 %
 % Sets
@@ -57,6 +57,8 @@
 
 % \emph toggles italics; \textit sets italics; \em is deprecated
 \newcommand{\term} [1]{{\emph{#1\/}}} 
+% \emph does not provide trailing italic correction
+\newcommand{\Emph} [1]{{\emph{#1\/}}}
 
 % We don't need to do append a ~ or \ because TeX already handles .,
 % correctly. TODO figure out if italics are correct here
