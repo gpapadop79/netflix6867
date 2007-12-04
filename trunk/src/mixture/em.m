@@ -99,6 +99,8 @@ for K = 1:maxiter % TODO when to stop?
     end
   end
 
+  
+  
   assert(0 == numel(find(prum < 0 | 1 < prum)));
 
   %
