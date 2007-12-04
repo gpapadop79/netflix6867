@@ -26,7 +26,7 @@ if nargin < 5, tol = 1e-4; end; % termination delta ratio tolerance
 [nu nm] = size(R);
 kr = 5;
 like = -inf;
-showiters = false;
+showiters = true;
 initident = false;
 
 % the posteriors initialization doesn't matter, since the E-step runs first
