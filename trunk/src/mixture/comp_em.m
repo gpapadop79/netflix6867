@@ -1,5 +1,5 @@
 clear;
-load Netflix_subset;
+load ../dataset/Netflix_subset.mat;
 
 ku = 2;
 km = 2;
@@ -195,6 +195,11 @@ input('press any key to proceed');
       end
     end
   end
+  
+  
+  
+  
+  
   like = sum(log(reshape(like,numel(like),1)));
   if showiters, fprintf('%d\n', like); end;
   assert(not(0 < like || like < lastlike));
