@@ -6,9 +6,6 @@ FLAGS   = -m bibtex -Wrefs -Wmisc
 
 all: clean mixture.tex ps
 
-mixture.tex: mixture.tex.bak
-	../tools/FixDia ../tools/rules.txt < mixture.tex.bak > mixture.tex
-
 ps:
 	rubber --ps $(FLAGS) $(TARGET)
 # need to manually activate the bibtex module because of the premature \end{document}
