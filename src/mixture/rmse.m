@@ -1,7 +1,9 @@
 function err = rmse(R, prum, pui, pmj);
 
-err = 0; kr = size(prum,1); ku = size(pui,1); km = size(pmj,1);
+kr = size(prum,1); ku = size(pui,1); km = size(pmj,1);
 [nu nm] = size(R);
+%%%% lprum = log(prum); lpui = log(pui); lpmj = log(pmj);
+like = zeros(kr,nu,nm);
 
 % estimate the most likely ratings for each of the test (i,j)
 for i = 1:nu
@@ -9,22 +11,18 @@ for i = 1:nu
     if R(i,j) > 0
       % find likelihood of each rating
       for r = 1:kr
-        like(r,i,j) = 0;
-        for u = 1:ku
-          for m = 1:km
-            like(r,i,j) = like(r,i,j) + ...
-                log(prum(r,u,m)) + log(pui(u,i)) + log(pmj(m,j));
-          end
-        end
+        like(r,i,j) = like(r,i,j) + sum(sum(prum(r,:,:) .* pui(:,i) * pmj(:,j)'));
       end
-      % which one is most likely? that's our estimate
-      [l r] = max(like(:,i,j));
-      % find RMSE between our estimate and the true rating
-      err = err + (r - R(i,j))^2;
     end
   end
 end
 
-err = sqrt(err / numel(err));
+% which r's are most likely? those are our estimates
+[l r] = max(like,[],1);
+
+% find RMSE between our estimates and the true ratings (ignoring the non-test
+% cells)
+errs = (r - R).^2 .* (R > 0);
+err = sqrt(sum(reshape(errs, numel(errs), 1)) / numel(err));
 
 % vim:et:sw=2:ts=2
