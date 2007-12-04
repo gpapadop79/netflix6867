@@ -1,4 +1,4 @@
-function [prum pui pmj pumrij] = em_hiro_edited(R, ku, km);
+function [prum pui pmj pumrij] = em(R, ku, km);
 
 %
 %% initialization
@@ -10,40 +10,44 @@ kr = 5; km = 2; ku = 2;
 initident = 0;
 
 % the posteriors initialization doesn't matter, since the E-step runs first
-pumrij = ones(ku,km,nu,nm);         % P(U,M|R,I,J)
+pumrij = ones(ku,km,kr,nu,nm);        % P(U,M|R,I,J)
 % the priors should be uniformly initialized
 pui    = 1/ku * ones(ku,nu);          % P(U|I)
 pmj    = 1/km * ones(km,nm);          % P(M|J)
 % the likelihood must not be identically initialized; we initialize it randomly
 % (but the random distributions must be normalized)
-prum   = rand(ku,km,kr);             % P(R|U,M)
+prum   = rand(kr,ku,km);              % P(R|U,M)
 for u = ku
   for m = km
-    prum(u,m,:) = prum(u,m,:) / sum(prum(u,m,:));
+    prum(:,u,m) = prum(:,u,m) / sum(prum(:,u,m));
   end
 end
-if initident, prum = 1/kr * ones(ku,km, kr); end;
+if initident, prum = 1/kr * ones(kr,ku,km); end;
 
 for K = 1:100 % TODO when to stop?
 
-  tic;
   fprintf('iteration %d\n', K);
 
   %
   %% e-step
   %
 
+  % TODO use only the i,j that are present
+  % TODO use only R(i,j)
+
   %disp pumrij;
   for i = 1:nu
     for j = 1:nm
-        if R(i,j) > 0
-            pumrij(:,:,i,j) = prum(:,:,R(i,j)) .* (pui(:,i) * pmj(:,j)');
-            pumrij(:,:,i,j) = pumrij(:,:,i,j) / sum(sum(pumrij(:,:,i,j)));
+      for r = 1:kr
+        for m = 1:km
+          for u = 1:ku
+            pumrij(u,m,r,i,j) = prum(r,u,m) * pui(u,i) * pmj(m,j);
+          end
         end
+        pumrij(:,:,r,i,j) = pumrij(:,:,r,i,j) / sum(sum(pumrij(:,:,r,i,j)));
+      end
     end
   end
-  
-  toc;
 
   % TODO make sure probs sum to 1; repeat for other mats
   %if find(sum(:,:,:,:,:) != 1), err(); end;
@@ -55,33 +59,49 @@ for K = 1:100 % TODO when to stop?
 
   %disp pui
   lastpui = pui;
-  pui = reshape(sum(sum(pumrij,4),2),ku,nu);
-  pui = pui./repmat(sum(pui,1),ku,1);
-  
+  pui = zeros(ku,nu);
+  for i = 1:nu
+    for u = 1:ku
+      for j = 1:nm
+        if R(i,j) > 0
+          pui(u,i) = pui(u,i) + sum(pumrij(u,:,R(i,j),i,j)); % + P(U|R,I,J)
+        end
+      end
+      pui(u,i) = pui(u,i) / numel(find(R(i,:) > 0));
+    end
+  end
+
   if find(pui < 0 | 1 < pui), err(); end;
 
   %disp pmj
   lastpmj = pmj;
-  pmj = reshape(sum(sum(pumrij,3),1),km,nm);
-  pmj = pmj./repmat(sum(pmj,1),km,1);
+  pmj = zeros(km,nm);
+  for j = 1:nm
+    for m = 1:km
+      for i = 1:nu
+        if R(i,j) > 0
+          pmj(m,j) = pmj(m,j) + sum(pumrij(:,m,R(i,j),i,j)); % + P(M|R,I,J)
+        end
+      end
+      pmj(m,j) = pmj(m,j) / numel(find(R(:,j) > 0));
+    end
+  end
 
   if find(pmj < 0 | 1 < pmj), err(); end;
 
-  toc;
-  
   %disp prum;
   lastprum = prum;
-  prum = zeros(ku,km,kr);
+  prum = zeros(kr,ku,km);
   for u = 1:ku
     for m = 1:km
       for i = 1:nu
         for j = 1:nm
           if R(i,j) > 0
-            prum(u,m,R(i,j)) = prum(u,m,R(i,j)) + pumrij(u,m,i,j);
+            prum(R(i,j),u,m) = prum(R(i,j),u,m) + pumrij(u,m,R(i,j),i,j);
           end
         end
       end
-      prum(u,m,:) = prum(u,m,:) / sum(prum(u,m,:));
+      prum(:,u,m) = prum(:,u,m) / sum(prum(:,u,m));
     end
   end
 
@@ -93,7 +113,6 @@ for K = 1:100 % TODO when to stop?
     break;
   end;
 
-  toc;
 end
 
 % DONE added random initialization - this seemed to do the trick
