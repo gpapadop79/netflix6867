@@ -7,6 +7,8 @@ load Netflix_subset.mat
 R = R';
 [R Rtest] = divideData(R, 0.5);
 
+maxku = 5; maxkm = 5;
+
 % number of times to repeat EM for each unique configuration
 tries = 3;
 
