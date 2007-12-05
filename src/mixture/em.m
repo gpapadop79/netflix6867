@@ -25,9 +25,10 @@ if nargin < 4, maxiter = 30; end;
 if nargin < 5, tol = 1e-4; end; % termination delta ratio tolerance
 [nu nm] = size(R);
 kr = 5;
-like = -inf;
-showiters = true;
+like = -inf;                          % P(all R)
+showiters = false;
 initident = false;
+I = R; I(find(R == 0)) = 1;
 
 % the posteriors initialization doesn't matter, since the E-step runs first
 pumrij = ones(ku,km,nu,nm);           % P(U,M|R,I,J)
@@ -44,46 +45,69 @@ for u = ku
 end
 if initident, prum = 1/kr * ones(ku,km,kr); end;
 
+pumrij = likelihood(R,I,ku,km,nu,nm,prum,pui,pmj);
+
 for K = 1:maxiter % TODO when to stop?
 
-  if showiters, fprintf('iteration %d\n', K); end;
+  if showiters, fprintf('iteration %d: ', K); end;
 
   %
   %% e-step
   %
+  % we calculate the likelihood here anyway (the denominator), so combine in
+  % this part of the code the e-step and the stopping condition check.
+  %
+  % actually, this should already be calculated (either from initialization or
+  % from the last stage's likelihood calculation), so we have nothing to do
+  % here!
+  %
+  % pseudo-code:
+  % for i = 1:nu
+  %   for j = 1:nm
+  %     if R(i,j) > 0
+  %       pumrij(:,:,i,j) = prum(:,:,R(i,j)) .* (pui(:,i) * pmj(:,j)');
+  %       pumrij(:,:,i,j) = pumrij(:,:,i,j) / sum(sum(pumrij(:,:,i,j)));
+  %     end
+  %   end
+  % end
+  %
+  % alternative pseudo-code:
+  % like = ones(nu,nm);
+  % for i = 1:nu
+  %   for j = 1:nm
+  %     if R(i,j) > 0
+  %       like(i,j) = 0;
+  %       for u = 1:ku
+  %         for m = 1:km
+  %           like(i,j) = like(i,j) + prum(u,m,R(i,j)) * pui(u,i) * pmj(m,j);
+  %         end
+  %       end
+  %     end
+  %   end
+  % end
+  %
 
-  %disp pumrij;
-  for i = 1:nu
-    for j = 1:nm
-      if R(i,j) > 0
-        pumrij(:,:,i,j) = prum(:,:,R(i,j)) .* (pui(:,i) * pmj(:,j)');
-        pumrij(:,:,i,j) = pumrij(:,:,i,j) / sum(sum(pumrij(:,:,i,j)));
-      end
-    end
-  end
-
-  % TODO make sure probs sum to 1; repeat for other mats
-  assert(0 == numel(find(pumrij < 0 | 1 < pumrij)));
+  %%%%pumrij = reshape(prum(:,:,I),ku,km,nu,nm) .* ...
+  %%%%    (repmat(reshape(pui,ku,1,nu,1), [1 km 1 nm]) .* ...
+  %%%%     repmat(reshape(pmj,1,km,1,nm), [ku 1 nu 1]));
+  %%%%prij = repmat(sum(sum(pumrij,1),2), [ku km 1 1]);
+  %%%%pumrij = pumrij ./ prij;
+  %%%%pumrij(find(repmat(reshape(R,1,1,nu,nm),[ku km 1 1]) == 0)) = 1;
 
   %
   %% m-step
   %
 
-  %disp pui
   lastpui = pui;
   pui = reshape(sum(sum(pumrij,4),2),ku,nu);
   pui = pui./repmat(sum(pui,1),ku,1);
-  
   assert(0 == numel(find(pui < 0 | 1 < pui)));
 
-  %disp pmj
   lastpmj = pmj;
   pmj = reshape(sum(sum(pumrij,3),1),km,nm);
   pmj = pmj./repmat(sum(pmj,1),km,1);
-
   assert(0 == numel(find(pmj < 0 | 1 < pmj)));
-  
-  %disp prum;
+
   lastprum = prum;
   prum = zeros(ku,km,kr);
   for u = 1:ku
@@ -99,44 +123,38 @@ for K = 1:maxiter % TODO when to stop?
     end
   end
 
-  
-  
   assert(0 == numel(find(prum < 0 | 1 < prum)));
 
   %
   % calculate likelihood
   %
+  % pseudo-code:
+  % like = ones(nu,nm);
+  % for i = 1:nu
+  %   for j = 1:nm
+  %     if R(i,j) > 0
+  %       like(i,j) = 0;
+  %       for u = 1:ku
+  %         for m = 1:km
+  %           like(i,j) = like(i,j) + prum(u,m,R(i,j)) * pui(u,i) * pmj(m,j);
+  %         end
+  %       end
+  %     end
+  %   end
+  % end
+  % like = sum(log(reshape(like,numel(like),1)));
+  % if showiters, fprintf('%f\n', like); end;
+  % assert(not(0 < like || like < lastlike));
 
   lastlike = like;
-  like = ones(nu,nm);
-  for i = 1:nu
-    for j = 1:nm
-      if R(i,j) > 0
-        like(i,j) = 0;
-        for u = 1:ku
-          for m = 1:km
-            like(i,j) = like(i,j) + prum(u,m,R(i,j)) * pui(u,i) * pmj(m,j);
-          end
-        end
-      end
-    end
-  end
-  like = sum(log(reshape(like,numel(like),1)));
-  if showiters, fprintf('%d\n', like); end;
-  assert(not(0 < like || like < lastlike));
-
+  [pumrij prij] = likelihood(R,I,ku,km,nu,nm,prum,pui,pmj);
+  like = sum(log(reshape(prij,numel(prij),1)));
+  if showiters, fprintf('L = %f\n', like); end;
+  assert(like < 0 && lastlike < like);
   if abs((like-lastlike)/lastlike) < tol
     break
   end
-
-  %%%%if numel(find(pui == lastpui)) > 0 && ...
-  %%%%   numel(find(pmj == lastpmj)) > 0 && ...
-  %%%%   numel(find(prum == lastprum)) > 0
-  %%%%  break;
-  %%%%end;
 end
-
-K
 
 % newprum = zeros(kr,ku,km); % putting the r,u,m in the right spots
 % for u = 1:ku
@@ -147,6 +165,23 @@ K
 % prum = newprum;
 
 prum = shiftdim(prum, 2);
+
+return;
+
+function [pumrij prij pjoint] = likelihood(R,I,ku,km,nu,nm,prum,pui,pmj);
+pjoint = reshape(prum(:,:,I),ku,km,nu,nm) .* ...
+    (repmat(reshape(pui,ku,1,nu,1), [1 km 1 nm]) .* ...
+     repmat(reshape(pmj,1,km,1,nm), [ku 1 nu 1]));
+prij = sum(sum(pjoint,1),2);
+pumrij = pjoint ./ repmat(prij, [ku km 1 1]);
+assert(0 == numel(find(pjoint < 0 | 1 < pjoint)));
+assert(0 == numel(find(prij < 0 | 1 < prij)));
+assert(0 == numel(find(pumrij < 0 | 1 < pumrij)));
+% TODO figure out why this next line makes a difference (eg how do pui/pmj
+% depend on the missing ratings?)
+pumrij(find(repmat(reshape(R,1,1,nu,nm),[ku km 1 1]) == 0)) = 1;
+prij(find(R == 0)) = 1;
+return;
 
 % DONE added random initialization - this seemed to do the trick
 % DONE vectorized some parts of the code
