@@ -8,5 +8,5 @@ sparsity = 0.5;
 [prum pui pmj like pumrij] = em(R_train, 10, 4, 100);
 
 %%
-[err errmean Rhat Rhatmean] = rmse(R_train, prum, pui, pmj);
+[err errmean Rhat Rhatmean] = rmse(R_test, prum, pui, pmj);
 
