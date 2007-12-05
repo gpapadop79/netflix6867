@@ -7,7 +7,7 @@ load Netflix_subset.mat
 R = R';
 [R Rtest] = divideData(R, 0.5);
 
-maxku = 5; maxkm = 5;
+maxkm = 100; maxku = 100; numvals = 5;
 
 % number of times to repeat EM for each unique configuration
 tries = 3;
@@ -18,8 +18,8 @@ configs = [];
 % a 'configuration counter'; each value corresponds to a different
 % setting of ku and km
 c = 1;
-for ku = 2:maxku
-  for km = 2:maxkm
+for ku = [2 4 8 16 32] % floor(logspace(0,log10(maxkm),numvals))
+  for km = [2 4 8 16 32] % floor(logspace(0,log10(maxku),numvals))
     configs(c,:) = [ku km];
     c = c + 1;
   end
@@ -42,12 +42,12 @@ if 0
     end
   end
   emresults = r;
-  save emresults;
+  save emresults emresults;
 end
 
 %% analyze the results: tables, plots
 if 1
-  load emresults;
+  load /tmp/emresults emresults;
   rs = emresults;
 
   [nu nm] = size(R);
@@ -60,10 +60,6 @@ if 1
   % print tables of BIC and likelihoods
   fprintf('%5s %5s %9s %14s %14s %14s\n', 'ku', 'km', 'best LL', 'RMSE', 'BIC penalty', 'BIC score');
   for c = 1:size(configs,1)
-%%%%    for t = 1:tries
-%%%%      % TODO define `likelihood` function
-%%%%      L(c,t) = likelihood(R, prum, pui, pmj);
-%%%%    end
     ku = configs(c,1); km = configs(c,2);
 
     % find the best parameter settings for this configuration
@@ -72,7 +68,6 @@ if 1
 
     % compute the RMSE
     rmses(c) = rmse(Rtest, r.prum, r.pui, r.pmj);
-%%%%    testlik = likelihood(Rtest, prum, pui, pm);
 
     % compute BIC
     nparams  = numel(r.prum) + numel(r.pui) + numel(r.pmj);

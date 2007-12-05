@@ -11,7 +11,7 @@ R = [5 5 5 0; ... % :)
      1 0 1 5];    % :(
 
 % run EM
-[prum pui pmj like pumrij] = oldem2(R, ku, km);
+[prum pui pmj like pumrij] = em(R, ku, km);
 
 % test the first unknown
 i = 1; j = 4;
