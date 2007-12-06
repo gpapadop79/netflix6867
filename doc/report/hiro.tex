@@ -18,35 +18,44 @@ The goal of the algorithm is to find a low-rank approximation of the sparse rati
 \begin{equation}
 R \approx MU
 \end{equation}
-where $M$ is awhere $M$ is a $n_M$-by-$d$ movie property matrix, $U$ is a
+where $M$ is where $M$ is a $n_M$-by-$d$ movie property matrix, $U$ is a
 $d$-by-$n_U$ user property matrix, and $d$ is the dimension of the
 low-rank approximation. Due to the missing entries of $R$, $M$ and $U$
 cannot be obtained from singular value decomposition. Instead, the
 algorithm learns $M$ and $U$ using linear regression and an EM-like
 alternate update algorithm.
 
-The time and space complexity of the algorithm is proportional to the data size $(n_U+n_M)$, so it is tractable even for the huge data set of Netflix Prize. However, it badly overfits to the training data especially when the rating matrix is sparse.
+The time and space complexity of the algorithm is proportional to the
+data size $(n_U+n_M)$, so it is tractable even for the large data set
+of the Netflix Prize. However, it strongly overfits to the training
+data especially when the rating matrix is sparse.
 
 \subsection{Learning Algorithm}
 
-At the beginning of the algorithm, $M$ is randomly initialized and fixed. Then the $i$th column of $U$ is learned by regular linear regression as follows;
+At the beginning of the algorithm, $M$ is randomly initialized and
+fixed. Then the $i$-th column of $U$ is learned by regular linear
+regression as follows:
 \begin{equation}
-\vect{u}_i=(\check{M}^T\check{M})^{-1}\check{M}^T \check{\vect r}_i \label{eq:lrem_core}
+\vect{u}_i=(\check{M}^T\check{M})^{-1}\check{M}^T \check{\vect r}_i
+\label{eq:lrem_core}
 \end{equation}
-where $\check{\vect r}_i$ is a column vector constructed from the $i$th column of the rating matrix $R$, by excluding the missing elements from it. For example, if the $i$th column of $R$ is $[2 \quad \circ \quad 4 \quad \circ \quad \circ \quad 5 \quad \circ]^T$ where``$\circ$'' means missing element, then $\check{r}_i = [2 \quad 4 \quad 5]^T$. $check{M}$ is a matrix with the corresponding rows of $M$.
+where $\check{\vect r}_i$ is a column vector constructed from the $i$th column of the rating matrix $R$, by excluding the missing elements from it. For example, if the $i$th column of $R$ is $[2 \quad \circ \quad 4 \quad \circ \quad \circ \quad 5 \quad \circ]^T$ where``$\circ$'' means missing element, then $\check{r}_i = [2 \quad 4 \quad 5]^T$. $\check{M}$ is a matrix with the corresponding rows of $M$.
 
-Then in the next step, $U$ is fixed and each row of $M$ is updated in the exactly same manner. These steps are repeated and U and M are alternatively updated until the training RMSE converges, just as EM algorithm. 
+Then in the next step, $U$ is fixed and each row of $M$ is updated in
+the exactly same manner. These steps are repeated and $U$ and $M$ are
+alternately updated until the training RMSE converges, in a similar
+fashion as the EM algorithm.
 
-The important fact is that, by repeating this iteration, the training RMSE monotonically decreases, and eventually converges to the (local) optimum. Linear regression finds the parameter which minimizes the log likelihood given the following normal distribution with arbitrary fixed variance $\sigma^2$;
+The important fact is that, by repeating this iteration, the training RMSE monotonically decreases, and eventually converges to the (local) optimum. Linear regression finds the parameter which minimizes the log-likelihood given the following normal distribution with arbitrary fixed variance $\sigma^2$;
 \begin{equation}
 r_{i,j}\sim N(\vec{m}_i \cdot {\vect u}_j, \sigma^2)
 \end{equation}
-where $\vec{m}_i$ is the $i$ th row of $M$ and ${\vect u}_j$ is $j$ th column of $U$.
+where $\vec{m}_i$ is the $i$-th row of $M$ and ${\vect u}_j$ is $j$-th column of $U$.
 
-Thus, just as EM algorithm, the log likelihood of the training data monotonically decreases in each iteration. With $\sigma = 1/\sqrt{2}$, the RMSE is exactly the same as the log likelihood. Thus the training RMSE monotonically decreases by iterations.
+Thus, just as in the EM algorithm, the log-likelihood of the training data monotonically decreases in each iteration. With $\sigma = 1/\sqrt{2}$, the RMSE is exactly the same as the log likelihood. Thus the training RMSE monotonically decreases by iterations.
 
 \subsection{Estimation}
-Given the trained matrices $U$ and $M$, the maximum likelihood estimation of the ratings can be easily obtained as follows;
+Given the trained matrices $U$ and $M$, the maximum likelihood estimation of the ratings can be easily obtained as follows:
 \begin{equation}
 \hat{r}_{i,j}=\vec{m}_i \cdot {\vect u}_j.
 \end{equation}
@@ -55,9 +64,19 @@ Although the actual ratings are given as integer numbers from one to five, the e
 
 \subsection{Result}
 
-The algorithm is implemented with MATLAB and worked successfully.
+We implemented this algorithm in MATLAB as well, and found that it
+worked successfully.
 
-Since the initial value of $M$ is randomly chosen, the result is stochastic. In fact it appears that the result is very sensitive to the initial value of $M$. Figure \ref{fig:lrem_typical_plot} shows the typical result of the training RMSE and the test RMSE as well as the RMSE when the estimation is simply the average rating of each movie (i.e. zero-order estimation). The training RMSE monotonically decreases over iterations as we expected, but test RMSE does not necessarily monotonically decreases. There is a large gap between training RMSE and test RMSE, indicating that the algorithm badly overfits to the training data.
+Since the initial value of $M$ is randomly chosen, the result is
+stochastic. In fact it appears that the result is very sensitive to
+the initial value of $M$. Figure~\ref{fig:lrem_typical_plot} shows the
+typical result of the training RMSE and the test RMSE as well as the
+RMSE when the estimation is simply the average rating of each movie
+(i.e. zero-order estimation). The training RMSE monotonically
+decreases over iterations as we expected, but the test RMSE does not
+necessarily monotonically decrease. There is a large gap between the
+training RMSE and test RMSE, indicating that the algorithm strongly
+overfits to the training data.
 
 \begin{figure}[ht]
   \begin{center}
@@ -67,8 +86,17 @@ Since the initial value of $M$ is randomly chosen, the result is stochastic. In 
   \label{fig:lrem_typical_plot}
 \end{figure}
 
-Table \ref{table:lrem_result} compares the average RMSE of ten runs with different dimensions of the low-rank approximation $d$ and different ratio of the missing element in the rating matrix. Looking at the table in column-wise, it is found that the algorithm works better for the raining data with less missing ratings, which is an obvious result. An interesting result can be found by looking at the table in row-wise; larger dimension results in the larger RMSE when the rating matrix is sparse, while it results in the smaller RMSE when the rating matrix is mostly filled. It is because the algorithm badly overfits to the training data when the number of free parameters are large while the number of the available training data is small. 
-
+Table~\ref{table:lrem_result} compares the average RMSE of ten runs
+with different dimensions of the low-rank approximation $d$ and
+different sparsity ratios. Looking at the table column-wise, we see
+that the algorithm works better given training data with fewer missing
+ratings, which is an obvious result. An interesting result can be seen
+by looking at the table row-wise: a larger dimension results in a
+larger RMSE when the rating matrix is sparse, while it results in a
+smaller RMSE when the rating matrix is mostly filled. This is because
+the algorithm strongly overfits to the training data when the number
+of free parameters is large and the number of the available training
+data is small.
 
 \begin{table}[ht]
  \caption{RMSE with different dimensions $d$ and different ratio of the missing element. The values are the average of ten runs.}
@@ -93,7 +121,12 @@ Table \ref{table:lrem_result} compares the average RMSE of ten runs with differe
 
 \subsection{Complexity Analysis}
 \paragraph{Time complexity} 
-The most time consuming part of the algorithm is the $d$ by $d$ matrix inversion $(\check{M}^T\check{M})^{-1}$ in Eq. \ref{eq:lrem_core}. In practice, Gauss Elimination, which has a complexity of $\OO{n^3}$, is used to find the solution instead of complete matrix inversion. The inverse of matrix is computed $(n_U+n_M)$ times in each iteration. Thus the time complexity of the algorithm is 
+The most time-consuming part of the algorithm is the $d$-by-$d$ matrix
+inversion $(\check{M}^T\check{M})^{-1}$ in Eq.~\ref{eq:lrem_core}. In
+practice, Gaussian elimination, which has a complexity of $\OO{n^3}$,
+would be used to find the solution instead of complete matrix
+inversion. The inverse of a matrix is computed $(n_U+n_M)$ times in
+each iteration. Thus the time complexity of the algorithm is
 \begin{equation}
 \OO{d^3N(n_U+n_M)}
 \end{equation}
@@ -107,10 +140,22 @@ Only $U$ and $M$ are stored during computation. Thus the space complexity is
 
 \subsection{Estimated performance on the full Netflix Prize data}
 \paragraph{Computational cost}
-It took about 15 seconds for 100 iteration with $n_U=892$, $n_M=51$, and $d=3$ on Intel Celeron 2.0 GHz CPU. Thus for the full data set of Netflix Prize where $n_U=480,189$ and $n_M=17,770$, the computation for 100 iterations would take about 2 hours with $d=3$. Requied memory space would be about 11 MByte. Thus this is a tractable algorithm for the full Netflix Prize data.
+It took about 15 seconds for 100 iterations with $n_U=892$, $n_M=51$,
+and $d=3$ on an Intel Celeron 2.0 GHz CPU. For the full data set of
+the Netflix Prize, where $n_U=480,189$ and $n_M=17,770$, the
+computation for 100 iterations would take about 2 hours with
+$d=3$. The required memory space would be about 11 MB. Thus, this is a
+tractable algorithm for the full Netflix Prize data.
 
 \paragraph{RMSE}
-In the actual Netflix prize data 99.9\% elements of the rating matrix are missing. With the small data set where $n_U=892$, $n_M=51$, the algorithm cannot run with 99.9\% sparsity since $(\check{M}^T\check{M})^{-1}$ in Eq. \ref{eq:lrem_core} become singular for most of the rows due to the lack of data. One thing we can say for sure from Table \ref{table:lrem_result} is that RMSE would be worse than 0.808 for the full Netflix prize data. Trying the algorithm on full data is the future work.
+In the actual Netflix prize data, 99.9\% of the elements in the rating
+matrix are missing. With the small data set where $n_U=892$, $n_M=51$,
+the algorithm cannot run with 99.9\% sparsity since
+$(\check{M}^T\check{M})^{-1}$ in Eq.~\ref{eq:lrem_core} becomes
+singular for most of the rows due to the lack of data. One thing we
+can say for sure from Table~\ref{table:lrem_result} is that the RMSE
+would be worse than 0.808 for the full Netflix Prize data set. Trying
+the algorithm on the full data is future work.
 
 \TODO{PCA: distribution in 2-D plain}
 
@@ -120,6 +165,3 @@ In the actual Netflix prize data 99.9\% elements of the rating matrix are missin
 \else
 \end{document}
 \fi
-
-
-
