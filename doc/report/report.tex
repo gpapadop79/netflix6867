@@ -323,9 +323,7 @@ Similarly, for all $j \in \range{n_M}$,
 Finally, for all $u \in \range{k_U}, m \in \range{k_M}$,
 \begin{align}
   {\theta^R_{u,m}}'(r)
-  =& \E{ \frac{n_{r,u,m}}{n_{u,m}} }{\theta}
-  = \frac{ \E{n_{r,u,m} }{\theta} }{ \E{n_{u,m}}{\theta} }
-   \text{\TODO{how to justify this?}} \\
+  = \frac{ \E{n_{r,u,m} }{\theta} }{ \E{n_{u,m}}{\theta} } \\
   =& \frac{\sum_{i,j: r_{i,j} = r} \PP{U_{i,j} = u, M_{i,j} = m}{
       R_{i,j} = r_{i,j}, \theta^R_{u,m}, \theta^U_i, \theta^M_j}
   }{ \sum_{i,j} \PP{U_{i,j} = u, M_{i,j} = m}{
@@ -533,22 +531,23 @@ approach.
 \subsection{Scalability}
 
 %We saw that the EM algorithm has slow execution times. 
-Computation time of the both algorithm is in the same order on the small dataset we used, where $n_M = 51$ and $n_U = 892$. However, the expected computation time on the full dataset of 500K users and 17K movies is \TODO{XXXXXXX} for mixture virsus 2 hours for low-rank approximation. \TODO{comp time is proportional to $n_U \cdot n_M$ in mixture while it is proportional to $(n_U + n_M)$ in low-rank approximation. brabrabra}. This is another reason why most of the leading teams in the Netflix Prize competition does not appear to use the mixture model.
-
+Computation time of both algorithms is on the same order on the small dataset we used, where $n_M = 51$ and $n_U = 892$. However, the expected computation time on the full dataset of 500K users and 17K movies is roughly 10 days for mixture versus 2 hours for low-rank approximation. The computation time is proportional to $n_U \cdot n_M$ in the mixture approach, whereas it is proportional to $n_U + n_M$ in the low-rank approximation approach. This is another reason why most of the leading teams in the Netflix Prize competition do not appear to use the mixture model.
 
 %By our complexity analysis, we project that running the algorithm on the full NetFlix dataset would take on the order of \TODO{}
 
 \section{Conclusion}
 
-\TODO{rewrite to be less of a copy-and-paste from intro?}
-
 We successfully implemented two approaches for collaborative
-filtering, an EM algorithm for estimating mixture model parameters,
+filtering: an EM algorithm for estimating mixture model parameters,
 and a low-rank approximation algorithm.  We analyze these approaches
-and evaluate them on a subset of the NetFlix Prize dataset. We also
+and evaluate them on a subset of the Netflix Prize dataset. We also
 included the theoretical basis of each approach and the empirical
-results of our experimental evaluation as well as complexity analysis
+results of our experimental evaluation as well as complexity analyses
 and discussion of their feasibility for larger-scale problems.
+
+The source code for our work is publicly available at:
+
+\url{http://code.google.com/p/netflix6867/}
 
 \section{Appendix}
 
