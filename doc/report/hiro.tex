@@ -17,17 +17,15 @@ The goal of the learning algorithm presented in this section is to find a low-ra
 \begin{equation}
 R \approx MU
 \end{equation}
-where $M$ is where $M$ is a $n_M$-by-$d$ movie property matrix, $U$ is a
+where $M$ is a $n_M$-by-$d$ movie property matrix, $U$ is a
 $d$-by-$n_U$ user property matrix, and $d$ is the dimension of the
 low-rank approximation. Due to the missing entries of $R$, $M$ and $U$
 cannot be obtained from singular value decomposition. Instead, the
 algorithm learns $M$ and $U$ using linear regression and an EM-like
 alternate update algorithm.
 
-The time and space complexity of the algorithm is proportional to the
-data size $(n_U+n_M)$, so it is tractable even for the large data set
-of the Netflix Prize. However, it strongly overfits to the training
-data especially when the rating matrix is sparse.
+The time and space complexity of the algorithm is proportional to
+the \textit{sum} of the number of users and movies $(n_U+n_M)$ (not the product!), so it is tractable even for the large data set of the Netflix Prize. However, it strongly overfits to the training data especially when the rating matrix is sparse.
 
 \subsection{Learning Algorithm}
 
@@ -147,9 +145,9 @@ $d=3$. The required memory space would be about 11 MB. Thus, this is a
 tractable algorithm for the full Netflix Prize data.
 
 \paragraph{RMSE}
-In the actual Netflix prize data, 99.9\% of the elements in the rating
+In the actual Netflix prize data, 99\% of the elements in the rating
 matrix are missing. With the small data set where $n_U=892$, $n_M=51$,
-the algorithm cannot run with 99.9\% sparsity since
+the algorithm cannot run with 99\% sparsity ratio since
 $(\check{M}^T\check{M})^{-1}$ in Eq.~\ref{eq:lrem_core} becomes
 singular for most of the rows due to the lack of data. One thing we
 can say for sure from Table~\ref{table:lrem_result} is that the RMSE
