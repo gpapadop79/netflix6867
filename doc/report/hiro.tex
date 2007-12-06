@@ -10,11 +10,10 @@
 
 \fi
 
-\section{Linear Regression + EM-like alternate update}
-\TODO{wordings: in this part...}
+\section{Low-rank Approximation}
 
 \subsection{Overview}
-The goal of the algorithm is to find a low-rank approximation of the sparse rating matrix 
+The goal of the learning algorithm presented in this section is to find a low-rank approximation of the sparse rating matrix 
 \begin{equation}
 R \approx MU
 \end{equation}
@@ -82,7 +81,7 @@ overfits to the training data.
   \begin{center}
     \includegraphics[scale=0.6]{figure/lrem_typical_plot}
   \end{center}
-  \caption{Typical result when $d = 2$ and (Ratio of missing element)=0.5. The dotted line shows the RMSE when the estimation is simply the average rating of each movie (i.e. zero-order estimation)}
+  \caption{Typical result when $d = 2$ and (sparsity ratio)=0.5. The dotted line shows the RMSE when the estimation is simply the average rating of each movie (i.e. zero-order estimation)}
   \label{fig:lrem_typical_plot}
 \end{figure}
 
@@ -99,21 +98,21 @@ of free parameters is large and the number of the available training
 data is small.
 
 \begin{table}[ht]
- \caption{RMSE with different dimensions $d$ and different ratio of the missing element. The values are the average of ten runs.}
+ \caption{RMSE with different dimensions $d$ and different sparsity ratio. The values are the average of ten runs.}
  \label{table:lrem_result}
  \begin{center}
   \begin{tabular}{|c|c||c|c|c|}
     \hline
-    \multicolumn{2}{|c|}{}  & \multicolumn{3}{|c|}{Ratio of missing element in $R$} \\
+    \multicolumn{2}{|c|}{}  & \multicolumn{3}{|c|}{Sparsity ratio} \\
     \cline{3-5}
-     \multicolumn{2}{|c|}{}    &  0.7  &  0.5  & 0.2   \\
+     \multicolumn{2}{|c|}{}    &  0.2 (dense)  &  0.5  & 0.7 (sparse)  \\
     \hline
     \hline
-       & 1 &  0.808  &  0.795  &  0.789  \\
+       & 1 &  0.789  &  0.795  &   0.808\\
     \cline{2-5}
-     $d$ & 2 &  0.859  &  0.790  & 0.772   \\
+     $d$ & 2 &  0.772  &  0.790  & 0.859\\
     \cline{2-5}
-     & 3 &  0.933  &  0.808  &  0.772  \\
+     & 3 &  0.772  &  0.808  &    0.933\\
     \hline
   \end{tabular}
  \end{center}
@@ -157,7 +156,23 @@ can say for sure from Table~\ref{table:lrem_result} is that the RMSE
 would be worse than 0.808 for the full Netflix Prize data set. Trying
 the algorithm on the full data is future work.
 
-\TODO{PCA: distribution in 2-D plain}
+\subsection{Principle Component Analysis}
+Low-rank approximation is equal to the Principle Component Analysis (PCA) when the rating matrix is packed. Thus, by plotting the trained matrix $U$ and $M$ with $d=2$ on 2-D plain, the distribution of user types and movie types can be visualized as Figure \ref{fig:pca}.
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includegraphics[scale=.75]{figure/pca.eps}
+  \end{center}
+  \caption{Principle Component Analysis of users and movies, obtained from singular value decomposition of packed rating matrix. Three clusters can be observed in movie domain.}
+  \label{fig:pca}
+\end{figure}
+
+In the user domain only one cluster is observed, although there are several outliers. On the other hand, three clear clusters can be observed in the movie domain. 
+
+Although low-rank approximation algorithm does not explicitly classify users and movies into discrete types as mixture model, it can captures the latent data structures. 
+
+\subsection{Introducing Prior}
+The undesirable behavior of overfitting to the training data may be fixed by introducing the prior belief (in other words, regularization term). As the algorithm overfits to the training data, it tends to give stupid estimations such as $100$ and $-100$, which is reduced to 5 or 1 in the algorithm eventually. If we introduce the prior that forces the predictions for the missing data to stay in the rage $1 \le r \le 5$, result would be improved. This is a future work.
 
 
 \if c\LaTeXe
