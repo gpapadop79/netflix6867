@@ -9,7 +9,7 @@ outer=1.8cm, foot=1cm]{geometry}
 
 \def\LaTeXe{c}
 
-\title{Collaborative Filtering for the Netflix Prize}
+\title{Collaborative Filtering for the NetFlix Prize}
 \author{Masahiro Ono and Yang Zhang}
 
 \begin{document}
@@ -24,22 +24,20 @@ outer=1.8cm, foot=1cm]{geometry}
 
 We implemented and evaluated two approaches to collaborative
 filtering: mixture model MLE and low-rank approximation. We analyze
-these approaches and evaluate them on a subset of the Netflix Prize
-data set. This report includes the theoretical basis of each approach
+these approaches and evaluate them on a subset of the NetFlix Prize
+dataset. This report includes the theoretical basis of each approach
 and the empirical results of our experimental evaluation as well as
 complexity analysis and discussion of their feasibility for
 larger-scale problems.
 
-\TODO{two methods are kind of opposite}
-
 \subsection{Dataset}
 
-The Netflix data set is large: it contains 480,189 users, 17,770
+The NetFlix dataset is large: it contains 480,189 users, 17,770
 movies, and 100,480,507 ratings. MATLAB's in-memory data management is
-not amenable to data sets of such scale, and working with such a large
-data set incurs implementation challenges that are beyond the scope of
-our class project. Hence, we use a much smaller subset of the full
-Netflix Prize data set consisting of 51 movies and 892 users, chosen so
+not amenable to datasets of such scale, and working with such a large
+dataset incurs implementation challenges that are beyond the scope of
+our class proejct. Hence, we use a much smaller subset of the full
+Netflix Prize dataset consisting of 51 movies and 892 users, chosen so
 that the resulting rating matrix is fully packed. We then divide the
 rating matrix into training and test data. Since we have the fully
 packed rating matrix, we can arbitrary specify the \term{sparsity
@@ -54,14 +52,14 @@ $r_{i,j} \in \range{5}$ is the rating given by user $i$ to movie
 $j$. We also denote by $n_U$ and $n_M$ the number of users and movies.
 
 \subsection{Performance Measure}
-The performance of each algorithm is measured by root-mean-square
+The performance of each algorithm is measured by root-mean-squre
 error,
 \begin{equation}
   \textrm{RMSE} = \left[
     \sum_{(i,j) \in I_T} ({\hat r}_{i,j} - r_{i,j})^2
   \right]^\frac{1}{2}
 \end{equation}
-where $I_T$ is the set of indexes of the ratings included in the test
+where $I_T$ is the set of indices of the ratings included in the test
 data and ${\hat r}_{i,j}$ is the estimated rating of $i$th user for
 $j$th movie.
 
@@ -252,7 +250,7 @@ For all $(i,j) \in I$, we calculate the posterior.
 =& \PP{ U_{i,j} = u, M_{i,j} = m }{ R_{i,j} = r_{i,j}, \theta^U_i,
   \theta^M_j, \theta^R_{u,m} }
 &&
-\text{Independence can be seen in graphical model} \\
+\text{independencies can be seen in graphical model} \\
 =& \frac{1}{Z} \left(
 \begin{aligned}
 & \PP{R_{i,j} = r_{i,j} }{U_{i,j} = u, M_{i,j} = m, \theta^R_{u,m}} \\
@@ -265,7 +263,7 @@ For all $(i,j) \in I$, we calculate the posterior.
 & \PP{U_{i,j} = u }{\theta^U_i}
   \PP{M_{i,j} = m }{\theta^M_j}
 \end{aligned} \right)
-&& \text{independence in graphical model} \\
+&& \text{independencies in graphical model} \\
 =& \frac{1}{Z} \theta^R_{u,m}(r_{i,j}) \theta^U_i(u) \theta^M_j(m)
 \label{eq:pumrij}
 \end{align}
@@ -274,8 +272,8 @@ Above,
   Z = \PP{R_{i,j} = r_{i,j}}{\theta} = \sum_{u,m} \PP{U = u, M = m}{R = r, \theta^U_i, \theta^M_j,
     \theta^R}
 \end{align}
-The above independence assertions can be verified from the moralized ancestral
-graphs of our model, but do do not have space to illustrate these
+The above independencies can be verified from the moralized ancestral
+graphs of our model, but de do not have space to illustrate these
 graphs here.
 
 For any $i,j$,
@@ -307,7 +305,7 @@ For all $i \in \range{n_U}$, for any $j \in \range{n_M}$,
   && \text{marginalized $M$, observed $R$} \\
   =& \sum_j \PP{U_{i,j} = u}{R_{i,j} = r_{i,j}, \theta^R_{u,m},
     \theta^U_i, \theta^M_j}
-  && \text{independence in graph} \\
+  && \text{independencies in graph} \\
   {\theta^U_i}'(u)
   =& \E{ \frac{ n_{u,i}}{ n_M } }{\theta} && \text{by Eq. \ref{eq:pui}} \\
   =& \frac{1}{n_M} \sum_j \PP{U_{i,j} = u}{ R_{i,j} = r_{i,j}, \theta^R_{u,m},
@@ -376,7 +374,7 @@ represents the asymptotic space usage.
 We implemented the E-M algorithm in MATLAB. Despite our efforts to
 optimize the execution speed by fully vectorizing all operations, the
 algorithm takes up to 100 seconds (depending on the size of the
-parameter set $\theta$) when run on even our reduced data set;
+parameter set $\theta$) when run on even our reduced dataset;
 nonetheless, it allowed us to rapidly prototype a working
 implementation.
 
@@ -486,7 +484,7 @@ average rating (weighted by their likelihoods).
 
 Our results show that the EM algorithm on the whole does not perform
 so well, always achieving roughly the same RMSE and likelihood on the
-test data set, regardless of the number of user types and movie types.
+test dataset, regardless of the number of user types and movie types.
 The results seemed suspicious, so we re-implemented the algorithm
 multiple times (in search of both correctness and speed), but always
 we found the same results, so we now understand that the problem lies
@@ -500,7 +498,7 @@ regardless of user and cell. This is likely caused by the fact that
 our parameters/distributions $\PP{U}{\theta^U_i}$ and
 $\PP{M}{\theta^M_j}$ are always nearly uniform, and our distribution
 $\PP{R}{U,M}$ is a more ``natural'' distribution that more often than
-not gives the most probably to 4, followed by 5. It turns out that
+not gives the most probabily to 4, followed by 5. It turns out that
 over 70\% of the ratings in our matrix are either 4 or 5, which
 explains this.
 
@@ -534,11 +532,11 @@ approach.
 
 \subsection{Scalability}
 
-We saw that the EM algorithm has slow execution times. In the data set
-we used, $n_M = 51$ and $n_U = 892$; on the full data set of nearly
-500K users and 17K movies, By our complexity analysis, we project that
-running the algorithm on the full Netflix data set would take on the
-order of \TODO{}
+%We saw that the EM algorithm has slow execution times. 
+Computation time of the both algorithm is in the same order on the small dataset we used, where $n_M = 51$ and $n_U = 892$. However, the expected computation time on the full dataset of 500K users and 17K movies is \TODO{XXXXXXX} for mixture virsus 2 hours for low-rank approximation. \TODO{comp time is proportional to $n_U \cdot n_M$ in mixture while it is proportional to $(n_U + n_M)$ in low-rank approximation. brabrabra}. This is another reason why most of the leading teams in the Netflix Prize competition does not appear to use the mixture model.
+
+
+%By our complexity analysis, we project that running the algorithm on the full NetFlix dataset would take on the order of \TODO{}
 
 \section{Conclusion}
 
@@ -547,7 +545,7 @@ order of \TODO{}
 We successfully implemented two approaches for collaborative
 filtering, an EM algorithm for estimating mixture model parameters,
 and a low-rank approximation algorithm.  We analyze these approaches
-and evaluate them on a subset of the Netflix Prize data set. We also
+and evaluate them on a subset of the NetFlix Prize dataset. We also
 included the theoretical basis of each approach and the empirical
 results of our experimental evaluation as well as complexity analysis
 and discussion of their feasibility for larger-scale problems.
@@ -579,9 +577,9 @@ Here are the variables we're using for the mixture models:
   \item $n_M$: number of movies
   \item $k_U$: number of user types
   \item $k_M$: number of movie types
-  \item $I$: the set of indexes $i,j$ of the ratings in the training
+  \item $I$: the set of indices $i,j$ of the ratings in the training
     set
-  \item $I_T$: the set of indexes $i,j$ of the ratings in the test set
+  \item $I_T$: the set of indices $i,j$ of the ratings in the test set
   \end{itemize}
 \item Indexes. This allows us to omit ranges in sums and quantifiers.
   \begin{itemize}
