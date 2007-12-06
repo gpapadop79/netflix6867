@@ -30,6 +30,8 @@ and the empirical results of our experimental evaluation as well as
 complexity analysis and discussion of their feasibility for
 larger-scale problems.
 
+\TODO{two methods are kind of opposite}
+
 \subsection{Dataset}
 
 The NetFlix dataset is large: it contains 480,189 users, 17,770
@@ -509,9 +511,19 @@ estimated; the complexity of this model is high.
 
 \input{hiro}
 
-\section{Performance Comparison}
+\section{Comparison}
 \label{sec:comparison}
+We have implemented two different methods for the collaborative filtering in our final project. 
 
+Mixture model uses discrete multinomial distribution for modeling $\PP{R}{U,M}$, which is a natural way to handle the discrete movie ratings. Its shortcoming is that it regards the ratings as just as "labels", which simply means different classes without any relation each other. However, "ratings" is a linear concept (i.e. in rating domain 5 is closer to 4 than to 1), which cannot be captured by the multinomial distribution. Thus seeing many ratings of 5 does not encourage the rating of 4 any more than the rating of 1.
+
+On the other hand, low-rank approximation works in continuous domain by handling discrete ratings as real numbers. Thus it may make predictions out of the range $\range{5}$, such as $1000$, $2.3$, or $-1$. However, since it is a linear model, it can capture the linear concept of the ratings.  
+
+These differences between two models led to the very different result and performance, although both of them use similar optimization method (EM).
+
+
+\subsection{RMSE}
+RMSE of mixture model is worse than low-rank approximation by large, for all sparsity ratio we have tried. 
 - EM performs worse
   - EM always predicts rating 4 because the user-type and movie-type
     priors are all nearly uniform
@@ -520,10 +532,8 @@ estimated; the complexity of this model is high.
 The overall disappointing performance of the EM algorithm was one of
 the motivations for looking into an alternative approach, namely
 low-rank approximation. It is interesting to note that most of the
-leading teams in the competition use a low-rank approximation
+leading teams in the competition appear to use a low-rank approximation
 approach.
-
-\subsection{RMSE}
 
 \subsection{Scalability}
 
@@ -532,17 +542,6 @@ we used, $n_M = 51$ and $n_U = 892$; on the full dataset of nearly
 500K users and 17K movies, By our complexity analysis, we project that
 running the algorithm on the full NetFlix dataset would take on the
 order of \TODO{}
-
-One shortcoming in our mixture model is that we used a multinomial
-distribution for modeling $\PP{R}{U,M}$. This does not capture the
-fact that $R$ is a rating from 1 to 5; the relationships between the
-different outcomes is ignored (so that seeing many ratings of 5 does
-not encourage the rating of 4 any more than the rating of 1).
-
-Low-rank approximation cannot handle discrete data, so it uses a
-continuous, unbounded range of values. Hence it can predict values
-that are not valid ratings, \ie values that are not in
-$\range{5}$.
 
 \section{Conclusion}
 
