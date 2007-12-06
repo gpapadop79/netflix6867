@@ -523,17 +523,14 @@ These differences between two models led to the very different result and perfor
 
 
 \subsection{RMSE}
-RMSE of mixture model is worse than low-rank approximation by large, for all sparsity ratio we have tried. 
-- EM performs worse
-  - EM always predicts rating 4 because the user-type and movie-type
-    priors are all nearly uniform
-- EM does not degrade for sparser data
+RMSE of mixture model is worse than low-rank approximation by large, for all scarcity ratio we have tried. Due to the inability of mixture model to capture the linear concept of rating, it almost always predicts rating 4, which appears most frequently in the training data. The resulting user-type and movie-type priors are all nearly uniform.
 
-The overall disappointing performance of the EM algorithm was one of
-the motivations for looking into an alternative approach, namely
-low-rank approximation. It is interesting to note that most of the
-leading teams in the competition appear to use a low-rank approximation
+The overall disappointing performance of the EM algorithm was one of the motivations for looking into an alternative approach, namely low-rank approximation. It is interesting to note that most of the leading teams in the Netflix Prize competition appear to use a low-rank approximation
 approach.
+
+%- EM does not degrade for sparser data
+
+
 
 \subsection{Scalability}
 
