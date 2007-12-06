@@ -1,73 +1,107 @@
+mkdatasets = 0; runem = 0; analyze = 1;
+
 %
-%% dataset initialization
+%% generate and save the datasets and configs
 %
 
-load Netflix_subset.mat
-% rows should be users, cols should be movies
-R = R';
-[R Rtest] = divideData(R, 0.5);
+if mkdatasets
+  kus = 2.^(1:5); kms = 2.^(1:5);
+  maxkm = max(kms); maxku = max(kus);
 
-maxkm = 100; maxku = 100; numvals = 5;
-
-% number of times to repeat EM for each unique configuration
-tries = 3;
-
-% the set of "configurations." A configuration is just a setting of ku and km
-% (the numbers of parameters).
-configs = [];
-% a 'configuration counter'; each value corresponds to a different
-% setting of ku and km
-c = 1;
-for ku = [2 4 8 16 32] % floor(logspace(0,log10(maxkm),numvals))
-  for km = [2 4 8 16 32] % floor(logspace(0,log10(maxku),numvals))
-    configs(c,:) = [ku km];
-    c = c + 1;
-  end
-end
-nc = size(configs, 1);
-
-%% run the EM algorithm
-if 0
-  [nu nm] = size(R);
-  % r is our results; later named emresults, now just r for brevity
-  r = [];
-  for c = 1:nc % configuration counter
-    for t = 1:tries % the trial counter
-      ku = configs(c,1); km = configs(c,2);
-      fprintf('running with: ku = %d, km = %d, try # %d\n', ku, km, t);
-      % TODO convert main.m into a function `em`. `em` should return the
-      % parameters prum, pui, pmj
-      [r(c,t).prum, r(c,t).pui, r(c,t).pmj r(c,t).like] = ...
-          em(R, ku, km, 30, 1e-5);
+  % the set of "configurations." A configuration is just a setting of ku and km
+  % (the numbers of parameters).
+  if 0
+    configs = [];
+    c = 1;
+    for sparsity = [.2 .5 .7]
+      for ku = kus
+        for km = kms
+          configs(c,:) = [sparsity ku km];
+          c = c + 1;
+        end
+      end
+    end
+  else
+    c = 1;
+    for sparsity = [.2 .5 .7]
+      for k = 1:length(kms)
+        configs(c,:) = [sparsity kus(k) kms(k)];
+        c = c + 1;
+      end
     end
   end
-  emresults = r;
-  save emresults emresults;
+  assert(size(configs,2) == 3);
+
+  load Netflix_subset.mat;
+  % rows should be users, cols should be movies
+  R = R';
+  Rs = [];
+  % try different sparsity ratios
+  sparsities = unique(configs(:,1));
+  for s = 1:length(sparsities)
+    [Rs(s).train Rs(s).test] = divideData(R, sparsities(s));
+  end
+  save datasets Rs configs;
 end
 
-%% analyze the results: tables, plots
-if 1
-  load /tmp/emresults emresults;
-  rs = emresults;
+%
+%% run the EM algorithm
+%
 
+if runem
+  % number of times to repeat EM for each unique configuration
+  tries = 3;
+
+  load datasets Rs configs;
+  res = [];
+  sparsities = unique(configs(:,1));
+  for c = 1:size(configs,1) % configuration counter
+    for t = 1:tries % the trial counter
+      sparsity = configs(c,1); ku = configs(c,2); km = configs(c,3);
+      s = find(sparsities == sparsity);
+      fprintf('running with: sparsity = %f, ku = %d, km = %d, try # %d\n', ....
+              sparsity, ku, km, t);
+      R = Rs(s).train;
+      % TODO convert main.m into a function `em`. `em` should return the
+      % parameters prum, pui, pmj
+      [res(s,c,t).prum, res(s,c,t).pui, res(s,c,t).pmj res(s,c,t).like] = ...
+          em(R, ku, km);
+    end
+  end
+  save emresults res;
+end
+
+%
+%% analyze the results: tables, plots
+%
+
+if analyze
+  load Netflix_subset.mat R;
   [nu nm] = size(R);
-  I = find(R ~= 0);
+  load datasets Rs configs;
+
+  load emresults res;
+  sparsities = unique(configs(:,1));
 
   % collect results for plotting
   bic = [];
-  rmses = [];
+  rmsesml = []; rmseswm = [];
 
   % print tables of BIC and likelihoods
-  fprintf('%5s %5s %9s %14s %14s %14s\n', 'ku', 'km', 'best LL', 'RMSE', 'BIC penalty', 'BIC score');
+  fprintf('%14s %5s %5s %14s %9s %9s %14s %14s\n', ...
+          'sparsity', 'ku', 'km', 'best LL', 'RMSE-ML', 'RMSE-WM', 'BIC penalty', 'BIC score');
   for c = 1:size(configs,1)
-    ku = configs(c,1); km = configs(c,2);
+    sparsity = configs(c,1); ku = configs(c,2); km = configs(c,3);
+    s = find(sparsities == sparsity);
+    R = Rs(s);
+    I = find(R.train ~= 0);
 
     % find the best parameter settings for this configuration
-    [like t] = max([rs(c,:).like]);
-    r = rs(c,t);
+    [like t] = max([res(s,c,:).like]);
+    r = res(s,c,t);
 
     % compute the RMSE
-    rmses(c) = rmse(Rtest, r.prum, r.pui, r.pmj);
+    [rmsesml(c) rmseswm(c)] = rmse(R.test, r.prum, r.pui, r.pmj);
 
     % compute BIC
     nparams  = numel(r.prum) + numel(r.pui) + numel(r.pmj);
@@ -75,18 +109,20 @@ if 1
     bic(c)   = like - penalty;
 
     % print table
-    fprintf('%5d %5d %9.2f %14.5f %14.5f %14.5f\n', ...
-        ku, km, like, rmses(c), penalty, bic(c));
+    fprintf('%14.5f %5d %5d %14.5f %9.5f %9.5f %14.5f %14.5f\n', ...
+            sparsity, ku, km, like, rmsesml(c), rmseswm(c), penalty, bic(c));
   end
 
   % generate plots
-  % TODO how to make a 3d plot? define `plotconfigs`
-  figure(1); clf; plotconfigs(configs, bic);
-  saveas(1, sprintf('em-bic-ku%d-km%d.png', maxku, maxkm));
-  saveas(1, sprintf('em-bic-ku%d-km%d.pdf', maxku, maxkm));
-  figure(2); clf; plotconfigs(configs, rmses);
-  saveas(2, sprintf('em-perf-ku%d-km%d.png', maxku, maxkm));
-  saveas(2, sprintf('em-perf-ku%d-km%d.pdf', maxku, maxkm));
+  if 0
+    % TODO how to make a 3d plot? define `plotconfigs`
+    figure(1); clf; plotconfigs(configs, bic);
+    saveas(1, sprintf('em-bic-ku%d-km%d.png', maxku, maxkm));
+    saveas(1, sprintf('em-bic-ku%d-km%d.pdf', maxku, maxkm));
+    figure(2); clf; plotconfigs(configs, rmses);
+    saveas(2, sprintf('em-perf-ku%d-km%d.png', maxku, maxkm));
+    saveas(2, sprintf('em-perf-ku%d-km%d.pdf', maxku, maxkm));
+  end
 end
 
 % vim:et:sw=2:ts=2
