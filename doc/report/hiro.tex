@@ -11,6 +11,8 @@
 \fi
 
 \section{Linear Regression + EM-like alternate update}
+\TODO{wordings: in this part...}
+
 \subsection{Overview}
 The goal of the algorithm is to find a low-rank approximation of the sparse rating matrix 
 \begin{equation}
@@ -110,6 +112,7 @@ It took about 15 seconds for 100 iteration with $n_U=892$, $n_M=51$, and $d=3$ o
 \paragraph{RMSE}
 In the actual Netflix prize data 99.9\% elements of the rating matrix are missing. With the small data set where $n_U=892$, $n_M=51$, the algorithm cannot run with 99.9\% sparsity since $(\check{M}^T\check{M})^{-1}$ in Eq. \ref{eq:lrem_core} become singular for most of the rows due to the lack of data. One thing we can say for sure from Table \ref{table:lrem_result} is that RMSE would be worse than 0.808 for the full Netflix prize data. Trying the algorithm on full data is the future work.
 
+\TODO{PCA: distribution in 2-D plain}
 
 
 \if c\LaTeXe
