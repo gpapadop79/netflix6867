@@ -1,6 +1,6 @@
 \documentclass{article}
 
-\usepackage[letterpaper, top=2cm, bottom=1cm, inner=1.8cm,
+\usepackage[letterpaper, top=2cm, bottom=2cm, inner=1.8cm,
 outer=1.8cm, foot=1cm]{geometry}
 
 \setcounter{tocdepth}{1}
@@ -509,20 +509,19 @@ estimated; the complexity of this model is high.
 
 \section{Comparison}
 \label{sec:comparison}
-We have implemented two different methods for the collaborative filtering in our final project. 
+We have implemented two different methods for collaborative filtering in our final project.
 
-Mixture model uses discrete multinomial distribution for modeling $\PP{R}{U,M}$, which is a natural way to handle the discrete movie ratings. Its shortcoming is that it regards the ratings as just as "labels", which simply means different classes without any relation each other. However, "ratings" is a linear concept (i.e. in rating domain 5 is closer to 4 than to 1), which cannot be captured by the multinomial distribution. Thus seeing many ratings of 5 does not encourage the rating of 4 any more than the rating of 1.
+The mixture model approach uses discrete multinomial distributions for modeling $\PP{R}{U,M}$, which is a natural way to handle the discrete movie ratings. Its shortcoming is that it regards the ratings as just ``labels'', which simply means different classes without any relation each other. However, ``ratings'' is a linear concept (\ie, in the rating domain, 5 is closer to 4 than to 1), which cannot be captured by the multinomial distribution. Thus, seeing many ratings of 5 does not encourage the rating of 4 any more than the rating of 1.
 
-On the other hand, low-rank approximation works in continuous domain by handling discrete ratings as real numbers. Thus it may make predictions out of the range $\range{5}$, such as $1000$, $2.3$, or $-1$. However, since it is a linear model, it can capture the linear concept of the ratings.  
+On the other hand, low-rank approximation works in a continuous domain by handling discrete ratings as real numbers. Thus, it may make predictions out of the range $\range{5}$, such as $1000$, $2.3$, or $-1$. However, since it is a linear model, it can capture the linear concept of the ratings.
 
-These differences between two models led to the very different result and performance, although both of them use similar optimization method (EM).
+These differences between the two models leads to dramatically different results and performance, although both of them use similar optimization method (EM and alternating updates).
 
 
 \subsection{RMSE}
-RMSE of mixture model is worse than low-rank approximation by large, for all scarcity ratio we have tried. Due to the inability of mixture model to capture the linear concept of rating, it almost always predicts rating 4, which appears most frequently in the training data. The resulting user-type and movie-type priors are all nearly uniform.
+The RMSE of the mixture model is worse than the low-rank approximation by large, for all scarcity ratio we have tried. Due to the inability of the mixture model to capture the linear concept of rating, it almost always predicts the rating 4, which appears most frequently in the training data. The resulting user-type and movie-type priors are all nearly uniform.
 
-The overall disappointing performance of the EM algorithm was one of the motivations for looking into an alternative approach, namely low-rank approximation. It is interesting to note that most of the leading teams in the Netflix Prize competition appear to use a low-rank approximation
-approach.
+The overall disappointing performance of the EM algorithm was one of the motivations for looking into an alternative approach, namely low-rank approximation. It is interesting to note that most of the leading teams in the Netflix Prize competition appear to use a low-rank approximation approach.
 
 %- EM does not degrade for sparser data
 
@@ -531,7 +530,7 @@ approach.
 \subsection{Scalability}
 
 %We saw that the EM algorithm has slow execution times. 
-Computation time of both algorithms is on the same order on the small dataset we used, where $n_M = 51$ and $n_U = 892$. However, the expected computation time on the full dataset of 500K users and 17K movies is roughly 10 days for mixture versus 2 hours for low-rank approximation. The computation time is proportional to $n_U \cdot n_M$ in the mixture approach, whereas it is proportional to $n_U + n_M$ in the low-rank approximation approach. This is another reason why most of the leading teams in the Netflix Prize competition do not appear to use the mixture model.
+The computation time of both algorithms is on the same order for the small dataset we used, where $n_M = 51$ and $n_U = 892$. However, the expected computation time on the full dataset of 500K users and 17K movies is roughly 10 days for mixture versus 2 hours for low-rank approximation. The computation time is proportional to $n_U \cdot n_M$ in the mixture approach, whereas it is proportional to $n_U + n_M$ in the low-rank approximation approach. This is another reason why most of the leading teams in the Netflix Prize competition do not appear to use the mixture model.
 
 %By our complexity analysis, we project that running the algorithm on the full NetFlix dataset would take on the order of \TODO{}
 
@@ -547,7 +546,9 @@ and discussion of their feasibility for larger-scale problems.
 
 The source code for our work is publicly available at:
 
+\begin{center}
 \url{http://code.google.com/p/netflix6867/}
+\end{center}
 
 \section{Appendix}
 
@@ -557,8 +558,7 @@ The source code for our work is publicly available at:
 Here are the variables we're using for the mixture models:
 
 \begin{itemize}
-\item $\theta$: the entire set of parameters. TODO explain the sharing
-  (but not here)
+\item $\theta$: the entire set of parameters.
   \begin{itemize}
   \item $\theta^U_i(u)$: the probability distribution over user types
     $u$ for a user $i$ (think
