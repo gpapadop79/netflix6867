@@ -104,7 +104,8 @@ our model given the parameters is then
 \end{align}
 We see that there are three sets of parameters, and our approach is to
 use an E-M algorithm to perform maximum likelihood estimation of these
-parameters.
+parameters. A graphical model representation of our mixture model is
+in figure~\ref{fig:graphical}.
 
 Each cell has its own user type and movie type. What does all this
 mean?  Intuitively, we can think of each cell as the result of an
@@ -119,27 +120,24 @@ meaning remains clear from the context.
 It is natural to use multinomial distributions for generating the user
 types for a user, and the movie types for a movie. We are also using
 multinomial distributions to generate ratings given a user type and
-movie type; this we do for simplicity. \TODO{have a better
-  explanation?}
+movie type; this we do for simplicity. We discuss this further in
+section \ref{sec:comparison}.
 
 \begin{figure}[ht]
   \begin{center}
     \input{mixture}
   \end{center}
+  \caption{A graphical model representation of our mixture model.}
+  \label{fig:graphical}
 \end{figure}
 
-\TODO{how do i float this figure?}
-Figure (TODO) shows our graphical model.
-
-\TODO{verify the following} Note that this model works for
-collaborative filtering for a static set of users and movies (filling
-in holes). New users/movies (augmenting our matrix with rows/columns
-that contain no data) would indeed be difficult to provide
-recommendations for regardless of model. However, even if these new
-rows/columns had data available, our approach requires re-training the
-model, because each user and each movie has its own distribution over
-user types and movie types. \TODO{say something about how we can get a
-  prior over these?}
+Note that this model works for collaborative filtering for a static
+set of users and movies (filling in holes). New users/movies
+(augmenting our matrix with rows/columns that contain no data) would
+indeed be difficult to provide recommendations for regardless of
+model. However, even if these new rows/columns had data available, our
+approach requires re-training the model, because each user and each
+movie has its own distribution over user types and movie types.
 
 \subsection{E-M Algorithm}
 
@@ -336,9 +334,6 @@ Finally, for all $u \in \range{k_U}, m \in \range{k_M}$,
 
 \subsection{Complexity Analysis}
 
-\TODO{fix this; our algo actually does not build complete tables, only
-what is necessary given the data; $r_{i,j}$, not all $r$}
-
 Here is a break-down of various dimensions of our model and
 algorithm. Each parameter involves ``weighted sums'' over some number
 of components of the joint posterior over $U,M$ given the data $R$;
@@ -367,41 +362,67 @@ dimensions $n_U$ and $n_M$.
 
 The posterior joint distribution over $U,M$ given the data $R$ is in
 Eq. \ref{eq:pumrij}. This table is of size $k_U \cdot k_M \cdot k_R
-\cdot n_U \cdot n_M$.
-
-\TODO{what to say here?} The number of iterations is less
-straightforward to calculate.
+\cdot n_U \cdot n_M$, and each cell takes $\OO{1}$ to
+compute. However, in our algorithm, we pruned the $R$ dimension; it is
+unnecessary because we do not need to calculate the probabilities for
+all values of $R$, but only the values of $R$ that are present in
+$\mat R$. This is the largest table in our algorithm, and thus it
+represents the asymptotic space usage.
 
 \subsection{Experimental Evaluation}
 
-We implemented the E-M algorithm in MATLAB. The MATLAB execution speed
-was poor when run on even our smaller dataset, but it allowed us to
-rapidly prototype a working implementation.
+We implemented the E-M algorithm in MATLAB. Despite our efforts to
+optimize the execution speed by fully vectorizing all operations, the
+algorithm takes up to 100 seconds (depending on the size of the
+parameter set $\theta$) when run on even our reduced dataset;
+nonetheless, it allowed us to rapidly prototype a working
+implementation.
+
+In addition to performing the E-step and M-step, each round we also
+calculate the likelihood of the data. (This turns out to share much of
+the same computation as the E-step, so we reuse this to avoid
+inflating the execution time.) We capped our algorithm to iterate 30
+times at most---we found that it rarely needs to iterate this many
+times---and it additionally halts once the likelihood stops changing
+by any significant amount. Here are some measured execution times;
+notice the super-quadratic (degree-4) growth in execution time as the
+parameter set size grows quadratically, as predicted in the complexity
+analysis.
+
+\begin{center}
+  \begin{tabular}{c|c}
+    $k_U, k_M$ & time (s) \\ \hline
+    2,  2  & 0.5 \\
+    4,  4  & 1.5 \\
+    8,  8  & 5.8 \\
+    16, 16 & 22 \\
+    32, 32 & 96
+  \end{tabular}
+\end{center}
 
 We partitioned the cells of $\mat R$ into a training set matrix and a
-test set matrix using a sparsity ratio of \TODO{sparsity ratio}. The
-EM algorithm was repeated \TODO{iterations} times, and we took the
-result parameters that yielded the largest likelihood. The reason for
-this is that EM does not guarantee it will find the global maximum;
-where it ends up depends on how the parameters were initialized.  The
-general way to deal with this is to randomly initialize the likelihood
-parameters, so we randomly initialize $\theta^R$. Note that no two
-components therein must be equal, otherwise they would have the exact
-same likelihood of generating any of the points (\ie, $\forall
-u,m,r,r', \, \theta^R_{u,m}(r) \ne \theta^R_{u,m}(r')$). $\theta^U$
-and $\theta^M$ \Emph{are} uniformly initialized; we are essentially
-starting with an ``unbiased'' prior (from a Bayesian perspective, we
-are doing the same thing as finding the maximum \foreign{a posteriori}
-parameters assuming a uniform prior).
+test set matrix using sparsity ratios of 0.2, 0.5, and 0.7. The EM
+algorithm was repeated three times, and we took the result parameters
+that yielded the largest likelihood. The reason for this is that EM
+does not guarantee it will find the global maximum; where it ends up
+depends on how the parameters were initialized.  The general way to
+deal with this is to randomly initialize the likelihood parameters, so
+we randomly initialize $\theta^R$. Note that no two components therein
+must be equal, otherwise they would have the exact same likelihood of
+generating any of the points (\ie, $\forall u,m,r,r', \,
+\theta^R_{u,m}(r) \ne \theta^R_{u,m}(r')$). $\theta^U$ and $\theta^M$
+\Emph{are} uniformly initialized; we are essentially starting with an
+``unbiased'' prior (from a Bayesian perspective, we are doing the same
+thing as finding the maximum \foreign{a posteriori} parameters
+assuming a uniform prior).
 
 In choosing the number of user types and movie types, an approach
 would be to try some different values and see how well they optimize
 some metric, settling with the value that best optimizes this
-metric. \TODO{really need to check the following!} However, if we
-simply let the metric be the likelihood, then we can simply blow up
-the number of parameters: have as many user types as there are users,
-and as many movie types as there and number of movie types will equal
-to the number of cell types.
+metric. However, if we simply let the metric be the likelihood, then
+we can simply blow up the number of parameters: have as many user
+types as there are users, and as many movie types as there and number
+of movie types will equal to the number of cell types.
 
 One common and easy-to-use metric is the \term{Bayesian information
   criterion} (BIC), also known as the \term{Schwarz information
@@ -433,20 +454,107 @@ In our model, we have
   \right] \\
 \end{align}
 
-\TODO{RESULTS}
+Here is a table of our final results. ``sparsity'' is the sparsity
+ratio; ``best LL'' is the best log-likelihood we saw across all runs;
+and ``RMSE (ML)'' is the RMSE when considering the most likely rating,
+whereas ``RMSE (WM)'' is the RMSE when considering the weighted
+average rating (weighted by their likelihoods).
 
-Finally, we computed the RMSE. These results will be discussed in
-section \TODO{reference the comparison section}
+\begin{center}
+  \begin{tabular}{c|c|c|c|c|c|c|c}
+      sparsity &   $k_U$ &   $k_M$ &       best LL &  RMSE (ML) &  RMSE (WM) & BIC penalty & BIC score \\
+\hline
+       $0.20000$ &    2 &    2 &  $-11682.49021$ &  $0.94946$ &  $0.94838$ &  $  8676.09233$ & $ -20358.58254$ \\
+       $0.20000$ &    4 &    4 &  $-11712.12555$ &  $0.94946$ &  $0.94898$ &  $ 17534.26424$ & $ -29246.38979$ \\
+       $0.20000$ &    8 &    8 &  $-11714.34409$ &  $0.94946$ &  $0.94902$ &  $ 35796.84683$ & $ -47511.19092$ \\
+       $0.20000$ &   16 &   16 &  $-11714.61355$ &  $0.94946$ &  $0.94904$ &  $ 74506.96705$ & $ -86221.58060$ \\
+       $0.20000$ &   32 &   32 &  $-11714.65863$ &  $0.94946$ &  $0.94904$ &  $160667.02767$ & $-172381.68631$ \\
+       $0.50000$ &    2 &    2 &  $-29003.86587$ &  $0.95235$ &  $0.94102$ &  $  9559.75354$ & $ -38563.61941$ \\
+       $0.50000$ &    4 &    4 &  $-29259.87174$ &  $0.95198$ &  $0.95034$ &  $ 19320.13149$ & $ -48580.00323$ \\
+       $0.50000$ &    8 &    8 &  $-29277.39835$ &  $0.95198$ &  $0.95070$ &  $ 39442.76065$ & $ -68720.15900$ \\
+       $0.50000$ &   16 &   16 &  $-29279.63470$ &  $0.95198$ &  $0.95075$ &  $ 82095.51200$ & $-111375.14670$ \\
+       $0.50000$ &   32 &   32 &  $-29279.98302$ &  $0.95198$ &  $0.95076$ &  $177030.98678$ & $-206310.96980$ \\
+       $0.70000$ &    2 &    2 &  $-39549.00019$ &  $0.92600$ &  $0.91623$ &  $  9879.84227$ & $ -49428.84246$ \\
+       $0.70000$ &    4 &    4 &  $-40926.65390$ &  $0.95017$ &  $0.94795$ &  $ 19967.02646$ & $ -60893.68036$ \\
+       $0.70000$ &    8 &    8 &  $-40990.95403$ &  $0.95017$ &  $0.94867$ &  $ 40763.42059$ & $ -81754.37462$ \\
+       $0.70000$ &   16 &   16 &  $-41000.51714$ &  $0.95017$ &  $0.94884$ &  $ 84844.31182$ & $-125844.82896$ \\
+       $0.70000$ &   32 &   32 &  $-41001.29407$ &  $0.95017$ &  $0.94885$ &  $182958.50623$ & $-223959.80030$
+  \end{tabular}
+\end{center}
 
+Our results show that the EM algorithm on the whole does not perform
+so well, always achieving roughly the same RMSE and likelihood on the
+test dataset, regardless of the number of user types and movie types.
+The results seemed suspicious, so we re-implemented the algorithm
+multiple times (in search of both correctness and speed), but always
+we found the same results, so we now understand that the problem lies
+in the approach.
 
+We investigated these results in detail and extensively, and
+found a number of phenomena. The first thing we noticed was that the
+final parameters (in any of our runs) almost always causes our
+algorithm to predict the rating 4 (and occasionally some 5s),
+regardless of user and cell. This is likely caused by the fact that
+our parameters/distributions $\PP{U}{\theta^U_i}$ and
+$\PP{M}{\theta^M_j}$ are always nearly uniform, and our distribution
+$\PP{R}{U,M}$ is a more ``natural'' distribution that more often than
+not gives the most probabily to 4, followed by 5. It turns out that
+over 70\% of the ratings in our matrix are either 4 or 5, which
+explains this.
 
-%\include{hiro}
+In our results, the BIC penalty dominates the final BIC score; this is
+because the likelihood changes only negligibly compared to the BIC
+penalty. The penalty is high because there are many parameters to be
+estimated; the complexity of this model is high.
+
 \input{hiro}
 
 \section{Performance Comparison}
-\subsection{RMSE Error}
-\subsection{Comutation Time and Memory Use}
-\subsection{Feasibility for the large-scale problem}
+\label{sec:comparison}
+
+- EM performs worse
+  - EM always predicts rating 4 because the user-type and movie-type
+    priors are all nearly uniform
+- EM does not degrade for sparser data
+
+The overall disappointing performance of the EM algorithm was one of
+the motivations for looking into an alternative approach, namely
+low-rank approximation. It is interesting to note that most of the
+leading teams in the competition use a low-rank approximation
+approach.
+
+\subsection{RMSE}
+
+\subsection{Scalability}
+
+We saw that the EM algorithm has slow execution times. In the dataset
+we used, $n_M = 51$ and $n_U = 892$; on the full dataset of nearly
+500K users and 17K movies, By our complexity analysis, we project that
+running the algorithm on the full NetFlix dataset would take on the
+order of \TODO{}
+
+One shortcoming in our mixture model is that we used a multinomial
+distribution for modeling $\PP{R}{U,M}$. This does not capture the
+fact that $R$ is a rating from 1 to 5; the relationships between the
+different outcomes is ignored (so that seeing many ratings of 5 does
+not encourage the rating of 4 any more than the rating of 1).
+
+Low-rank approximation cannot handle discrete data, so it uses a
+continuous, unbounded range of values. Hence it can predict values
+that are not valid ratings, \ie values that are not in
+$\range{5}$.
+
+\section{Conclusion}
+
+\TODO{rewrite to be less of a copy-and-paste from intro?}
+
+We successfully implemented two approaches for collaborative
+filtering, an EM algorithm for estimating mixture model parameters,
+and a low-rank approximation algorithm.  We analyze these approaches
+and evaluate them on a subset of the NetFlix Prize dataset. We also
+included the theoretical basis of each approach and the empirical
+results of our experimental evaluation as well as complexity analysis
+and discussion of their feasibility for larger-scale problems.
 
 \section{Appendix}
 
