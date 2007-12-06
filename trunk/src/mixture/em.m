@@ -1,4 +1,5 @@
 function [prum pui pmj like pumrij] = em(R, ku, km, maxiter, tol);
+tic;
 % [prum pui pmj pumrij like] = em(R, ku, km, maxiter, tol)
 %
 % EM algorithm for flexible mixture model (collab filt) MLE
@@ -165,6 +166,7 @@ end
 % prum = newprum;
 
 prum = shiftdim(prum, 2);
+toc;
 
 return;
 
