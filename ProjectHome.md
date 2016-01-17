@@ -1,0 +1,1 @@
+Some basic machine learning techniques applied to the Netflix competition.
